@@ -1,25 +1,46 @@
 import React from 'react';
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import { ShieldCheck, Lock } from "lucide-react";
 
 const Privacy = () => {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10 text-gray-800"style={{
-      fontFamily: '"Gidole", sans-serif',
-      fontWeight: 400,
-      fontStyle: "normal",
-    }}>
-      <h1 className="text-3xl font-bold mb-6 text-center text-blue-700">Privacy Policy</h1>
-      <p className="mb-4 leading-relaxed">
-        We respect your privacy. Any personal information shared with us, including name, email, phone, and address, will be kept confidential.
-      </p>
-      <p className="mb-4 leading-relaxed">
-        We do not share or sell user data to third parties. Payment data is securely handled via our payment gateway partner (Razorpay).
-      </p>
-      <p className="mb-4 leading-relaxed">
-        We may collect cookies and analytics to improve user experience. By using our website, you agree to this privacy policy.
-      </p>
-      <p className="text-gray-600 font-semibold">📅 Last Updated: July 2025</p>
+    <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f] flex flex-col justify-between font-sans">
+      <Navbar />
+
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-28 pb-16 w-full">
+        <div className="apple-card p-8 sm:p-12 bg-white space-y-8 shadow-xl">
+          <div className="border-b border-black/10 pb-6 text-center space-y-2">
+            <span className="text-xs font-semibold text-[#0071e3] uppercase tracking-widest flex items-center justify-center gap-1">
+              <ShieldCheck size={14} /> Security &amp; Trust
+            </span>
+            <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f]">Privacy Policy</h1>
+            <p className="text-xs text-[#86868b]">How we protect and handle your customer account data.</p>
+          </div>
+
+          <div className="space-y-4 text-sm text-[#515154] leading-relaxed">
+            <p>
+              We respect your privacy. Any personal information shared with us, including name, email, phone, and address, will be kept strictly confidential.
+            </p>
+            <p>
+              We do not share or sell user data to third parties. Payment data is securely processed via encrypted payment gateway partners.
+            </p>
+            <p>
+              We may collect cookies and anonymous analytics to improve page load speeds and personalize your store recommendations.
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-black/5 flex justify-between items-center text-xs text-[#86868b]">
+            <span>&copy; Shop Mart Privacy Standard</span>
+            <span className="font-semibold text-[#1d1d1f]">Updated: July 2025</span>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };
 
 export default Privacy;
+

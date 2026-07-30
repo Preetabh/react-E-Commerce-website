@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { Bot, Send, Sparkles, User, Apple } from "lucide-react";
 
 const AiCenter = () => {
   const [loader, setLoader] = useState(false);
@@ -9,12 +10,11 @@ const AiCenter = () => {
   const [chat, setChat] = useState([
     {
       sender: "ai",
-      text: "👋 Welcome to Biggest Shopping Mall AI Center! How can I help you with your e-commerce project today?",
+      text: "Hello! I am your Shop Mart Genius AI assistant. How can I assist you with products, specifications, or orders today?",
     },
   ]);
   const chatEndRef = useRef(null);
 
-  // Scroll to bottom when chat updates
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat]);
@@ -29,22 +29,20 @@ const AiCenter = () => {
     setLoader(true);
 
     try {
-      // Send message to backend
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/ai-help`,
         { code: userMessage },
         { withCredentials: true }
       );
 
-      // Backend returns { text: aiResponse }
-      const aiReply = response.data.text || "⚠️ Something went wrong. Please try again.";
+      const aiReply = response.data.text || "Something went wrong. Please try again.";
 
       setChat([...newChat, { sender: "ai", text: aiReply }]);
     } catch (error) {
       console.error("Error:", error);
       setChat([
         ...newChat,
-        { sender: "ai", text: "⚠️ Something went wrong. Please try again later." },
+        { sender: "ai", text: "Something went wrong. Please try again later." },
       ]);
     } finally {
       setLoader(false);
@@ -52,70 +50,116 @@ const AiCenter = () => {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 text-gray-800">
-      {/* Navbar */}
-      <div className="absolute top-0 left-0 w-full">
-        <Navbar />
-      </div>
+    <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f] flex flex-col justify-between">
+      <Navbar />
 
-      {/* Chat Window */}
-      <div className="flex flex-col items-center mt-20 flex-grow px-5">
-        <div className="w-full max-w-2xl flex flex-col bg-white shadow-xl border border-gray-200 rounded-2xl overflow-hidden">
-          {/* Chat Area */}
-          <div className="flex-1 p-5 space-y-4 overflow-y-auto max-h-[65vh]">
+      <main className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-24 pb-12 flex-grow flex flex-col">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white text-xs font-semibold text-[#0071e3] shadow-sm border border-black/5 mb-2">
+            <Sparkles size={14} /> Apple-Engineered AI Guidance
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-[#1d1d1f]">
+            Shop Mart Genius Bar
+          </h1>
+          <p className="text-xs text-[#86868b] mt-1">
+            Instant recommendations, gadget support, and order status guidance.
+          </p>
+        </div>
+
+        {/* Chat Container */}
+        <div className="apple-card bg-white flex-grow flex flex-col shadow-xl overflow-hidden min-h-[500px] border border-black/5">
+          {/* Chat Messages */}
+          <div className="flex-1 p-6 space-y-4 overflow-y-auto max-h-[60vh]">
             {chat.map((msg, index) => (
               <div
                 key={index}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
+                {msg.sender === "ai" && (
+                  <div className="w-8 h-8 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center shrink-0">
+                    <Apple size={16} className="fill-current" />
+                  </div>
+                )}
+
                 <div
-                  className={`px-4 py-2 rounded-2xl max-w-[75%] text-sm md:text-base ${
+                  className={`px-5 py-3 rounded-2xl max-w-[80%] text-sm leading-relaxed ${
                     msg.sender === "user"
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-gray-200 text-gray-800 rounded-bl-none"
+                      ? "bg-[#0071e3] text-white rounded-br-none shadow-md font-medium"
+                      : "bg-[#f5f5f7] text-[#1d1d1f] rounded-bl-none border border-black/5"
                   }`}
                 >
                   {msg.text}
                 </div>
+
+                {msg.sender === "user" && (
+                  <div className="w-8 h-8 rounded-full bg-[#0071e3] text-white flex items-center justify-center shrink-0">
+                    <User size={16} />
+                  </div>
+                )}
               </div>
             ))}
             {loader && (
-              <div className="flex justify-start">
-                <div className="px-4 py-2 rounded-2xl bg-gray-200 text-gray-600 text-sm animate-pulse">
-                  Typing...
+              <div className="flex gap-3 justify-start items-center">
+                <div className="w-8 h-8 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center shrink-0">
+                  <Apple size={16} className="fill-current" />
+                </div>
+                <div className="px-5 py-3 rounded-2xl bg-[#f5f5f7] text-[#86868b] text-sm animate-pulse">
+                  Genius AI is thinking...
                 </div>
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
 
+          {/* Quick Suggestions Chips */}
+          <div className="px-6 py-2 bg-[#fbfbfd] border-t border-black/5 flex items-center gap-2 overflow-x-auto text-xs text-[#515154]">
+            <span className="font-semibold text-[#86868b] shrink-0">Suggestions:</span>
+            <button
+              onClick={() => setMessage("Recommend the best headphones under ₹5,000")}
+              className="px-3 py-1 bg-white hover:bg-black/5 rounded-full border border-black/5 whitespace-nowrap transition"
+            >
+              Headphones under ₹5,000
+            </button>
+            <button
+              onClick={() => setMessage("How do I track my active order?")}
+              className="px-3 py-1 bg-white hover:bg-black/5 rounded-full border border-black/5 whitespace-nowrap transition"
+            >
+              Track Active Order
+            </button>
+            <button
+              onClick={() => setMessage("What is the return policy for electronics?")}
+              className="px-3 py-1 bg-white hover:bg-black/5 rounded-full border border-black/5 whitespace-nowrap transition"
+            >
+              Return Policy
+            </button>
+          </div>
+
           {/* Input Box */}
-          <div className="flex items-center border-t border-gray-200 p-3 bg-gray-50">
+          <div className="p-4 bg-white border-t border-black/5 flex items-center gap-3">
             <input
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-300 focus:border-blue-500 outline-none bg-white text-gray-800"
+              className="apple-input flex-1 py-3 text-sm"
               type="text"
-              placeholder="Type your message..."
+              placeholder="Ask Genius AI anything about products or orders..."
             />
             <button
               onClick={sendMessage}
               disabled={loader}
-              className="ml-3 px-5 py-2 bg-blue-600 text-white rounded-full shadow-md hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="apple-btn-primary py-3 px-5 flex items-center justify-center gap-2 text-sm shadow-md active:scale-95 disabled:opacity-50"
             >
-              ➤
+              <Send size={16} />
+              <span>Send</span>
             </button>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Footer */}
-      <div className="mt-auto w-full">
-        <Footer />
-      </div>
+      <Footer />
     </div>
   );
 };
 
 export default AiCenter;
+

@@ -43,8 +43,13 @@ const userSchema = new mongoose.Schema({
         city: String,
         state: String,
         country: String
+    },
+    coins: {
+        type: Number,
+        default: 250,
     }
 });
+
 
 const userModel = mongoose.model("User", userSchema);
 

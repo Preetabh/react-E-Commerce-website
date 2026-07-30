@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import OwnerNavbar from "../../components/OwnerNavbar.jsx";
+import Footer from "../../components/Footer.jsx";
+import { Package, Edit3, ArrowRight } from "lucide-react";
 import "../../App.css";
 
 const AllItems = () => {
@@ -33,92 +35,90 @@ const AllItems = () => {
   }, []);
 
   return (
-    <div style={{
-      fontFamily: '"Gidole", sans-serif',
-      fontWeight: 400,
-      fontStyle: "normal",
-    }}>
-    <>
-      <OwnerNavbar />
-      <div className="max-w-6xl mx-auto p-6">
-        <h2 className="text-3xl font-bold text-center mb-6">All Items</h2>
+    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+      <div>
+        <OwnerNavbar />
 
-        {loading ? (
-          <div className="flex items-center justify-center h-[60vh]">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">
+                Store Inventory Management
+              </h1>
+              <p className="text-xs text-gray-400 mt-1">
+                View, edit pricing, and update product cards in your store catalog.
+              </p>
+            </div>
+
+            <button
+              onClick={() => navigate("/owner/add-product")}
+              className="apple-btn-primary py-2.5 px-5 text-xs font-semibold flex items-center justify-center gap-2 self-start sm:self-auto"
+            >
+              <span>+ Add New Product</span>
+            </button>
           </div>
-        ) : items.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {items.map((item) => (
-              <div
-                key={item._id}
-                className="min-h-100 max-h-150 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                style={{
-                  backgroundColor: item.bgcolor || "#ffffff",
-                  color: item.textcolor || "#000000",
-                  border: `2px solid ${item.panelcolor || "#cccccc"}`,
-                }}
-              >
-                <div className="relative h-48 overflow-hidden rounded-md">
-                  <img
-                    src={item.images?.[0]?.url || "https://via.placeholder.com/150"}
-                    alt={item.name}
-                    className="absolute inset-0 w-full h-full object-contain hover:scale-50 transition duration-500"
-                  />
-                </div>
 
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold">
-                    {item.name.length <= 80
-                      ? item.name
-                      : item.name.substring(0, 80) + "..."}
-                  </h3>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center min-h-[40vh]">
+              <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs text-gray-400 mt-4">Loading catalog items...</p>
+            </div>
+          ) : items.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {items.map((item) => (
+                <div
+                  key={item._id}
+                  className="apple-card-dark p-6 bg-white/5 border border-white/10 flex flex-col justify-between hover:border-white/20 transition group"
+                >
+                  <div>
+                    <div className="w-full h-44 bg-white/5 rounded-2xl p-4 flex items-center justify-center mb-4 border border-white/5 overflow-hidden">
+                      <img
+                        src={item.images?.[0]?.url || "https://via.placeholder.com/150"}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
+                      />
+                    </div>
 
-                  <p className="text-gray-700 text-sm mt-2">{item.description}</p>
+                    <h3 className="text-base font-bold text-white line-clamp-2">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1 line-clamp-2">{item.description}</p>
 
-                  <div className="flex gap-3 items-center mt-2">
-                    <strike className="text-black-600 font-sm">
-                      ₹{item.price}
-                    </strike>
-                    <p className="text-lg font-bold text-green-600">
-                      ₹{item.discount}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 mt-3">
-                    <span
-                      className="w-4 h-4 rounded-full border"
-                      title="Background Color"
-                      style={{ backgroundColor: item.bgcolor }}
-                    />
-                    <span
-                      className="w-4 h-4 rounded-full border"
-                      title="Text Color"
-                      style={{ backgroundColor: item.textcolor }}
-                    />
-                    <span
-                      className="w-4 h-4 rounded-full border"
-                      title="Panel Color"
-                      style={{ backgroundColor: item.panelcolor }}
-                    />
+                    <div className="flex items-baseline gap-2 mt-3">
+                      <span className="text-lg font-extrabold text-blue-400">
+                        ₹{Number(item.discount || item.price).toLocaleString("en-IN")}
+                      </span>
+                      {item.discount && (
+                        <span className="text-xs text-gray-500 line-through">
+                          ₹{Number(item.price).toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <button
                     onClick={() => navigate(`/owner/EditProduct/${item._id}`)}
-                    className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+                    className="mt-6 w-full py-2.5 px-4 bg-white/10 hover:bg-blue-600 text-white text-xs font-semibold rounded-full border border-white/10 transition flex items-center justify-center gap-2"
                   >
-                    View Details
+                    <Edit3 size={14} />
+                    <span>Edit Product Details</span>
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500">No items available.</p>
-        )}
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 text-gray-500">
+              <Package size={36} className="mx-auto mb-3 text-gray-600" />
+              <p className="text-sm">No products found in store inventory.</p>
+            </div>
+          )}
+        </main>
       </div>
-    </></div>
+
+      <Footer />
+    </div>
   );
 };
 
 export default AllItems;
+

@@ -1,19 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../../components/OwnerNavbar.jsx";
+import OwnerNavbar from "../../components/OwnerNavbar.jsx";
+import Footer from "../../components/Footer.jsx";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
-
-
-const colorOptions = [
-  { name: "White", value: "#ffffff" },
-  { name: "Black", value: "#000000" },
-  { name: "Red", value: "#ff0000" },
-  { name: "Green", value: "#00ff00" },
-  { name: "Blue", value: "#0000ff" },
-];
+import { Save, Trash2, ArrowLeft, Check } from "lucide-react";
+import "../../App.css";
 
 const ItemsEdit = () => {
   const navigate = useNavigate();
@@ -27,6 +21,7 @@ const ItemsEdit = () => {
     panelcolor: "#f0f0f0",
     textcolor: "#000000",
     details: "",
+    information: "",
     image: null,
   });
 
@@ -37,7 +32,6 @@ const ItemsEdit = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please login first");
       return navigate("/owner/login");
     }
 
@@ -65,7 +59,7 @@ const ItemsEdit = () => {
         });
       } catch (err) {
         console.error("Error fetching product:", err.message);
-        setError("Failed to load product");
+        setError("Failed to load product details");
       }
     };
 
@@ -87,13 +81,18 @@ const ItemsEdit = () => {
     setSuccess("");
 
     try {
-
       const result = await Swal.fire({
-        title: `Are you sure To edit this Item ${formData.name}?`,
+        title: `Save Changes?`,
+        text: `Update details for "${formData.name}"?`,
         icon: "question",
-        showDenyButton: true,
-        confirmButtonText: "Yes",
-        denyButtonText: "No",
+        showCancelButton: true,
+        confirmButtonColor: "#0071e3",
+        cancelButtonColor: "#1d1d1f",
+        confirmButtonText: "Yes, Update",
+        cancelButtonText: "Cancel",
+        customClass: {
+          popup: 'rounded-3xl font-sans bg-[#1d1d1f] text-white',
+        }
       });
 
       if (!result.isConfirmed) return;
@@ -107,7 +106,7 @@ const ItemsEdit = () => {
         }
       );
 
-      setSuccess(res.data.message);
+      setSuccess(res.data.message || "Product updated successfully!");
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Something went wrong.");
@@ -116,186 +115,158 @@ const ItemsEdit = () => {
     }
   };
 
-  const handleRemoveItem = async (e) => {
+  const handleRemoveItem = async () => {
     try {
-
       const result = await Swal.fire({
-        title: `Are you sure delete this Item ${formData.name}?`,
-        icon: "question",
-        showDenyButton: true,
-        confirmButtonText: "Yes",
-        denyButtonText: "No",
+        title: `Delete Product?`,
+        text: `Are you sure you want to permanently remove "${formData.name}" from catalog?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ff3b30",
+        cancelButtonColor: "#1d1d1f",
+        confirmButtonText: "Yes, Delete",
+        cancelButtonText: "Keep Product",
+        customClass: {
+          popup: 'rounded-3xl font-sans bg-[#1d1d1f] text-white',
+        }
       });
 
       if (!result.isConfirmed) return;
 
-      const del = await axios.delete(
+      await axios.delete(
         `${import.meta.env.VITE_BASE_URL}/owner/delete/${id}`,
         {
-
-
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      toast.success(`Product deleted SucessFully! `);
+      toast.success(`Product deleted successfully!`);
       navigate(-1);
 
     } catch (error) {
-      toast.error(`Something went wrong! `);
-      console.error(`Can't delete this item. Something went wrong: ${error}`);
+      toast.error(`Could not delete item.`);
     }
   };
 
-
   return (
-    <div style={{
-      fontFamily: '"Gidole", sans-serif',
-      fontWeight: 400,
-      fontStyle: "normal",
-    }}>
-    <>
-      <Navbar />
+    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+      <div>
+        <OwnerNavbar />
 
-      <div className="flex justify-center items-center bg-gray-100 min-h-screen py-6">
-        <div className="max-w-3xl w-full bg-white shadow-md rounded-lg p-6 overflow-y-auto mt-12 h-[84vh]">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-center">Edit Product</h2>
-
-          {error && <p className="text-red-500 mb-2 text-center">{error}</p>}
-          {success && <p className="text-green-500 mb-2 text-center">{success}</p>}
-
-          <form onSubmit={handleSubmit} className="grid gap-3">
-            {/* Product Name */}
-            <label className="font-semibold text-gray-700">Product Name:</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Price */}
-            <label className="font-semibold text-gray-700">Price:</label>
-            <input
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Discount */}
-            <label className="font-semibold text-gray-700">Discount:</label>
-            <input
-              type="number"
-              name="discount"
-              value={formData.discount}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Background Color */}
-            <label className="font-semibold text-gray-700">Background Color:</label>
-            <div className="flex items-center gap-2">
-              <select
-                name="bgcolor"
-                value={formData.bgcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input type="color" name="bgcolor" value={formData.bgcolor} onChange={handleChange} />
+        <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">
+                Edit Product Catalog Listing
+              </h1>
+              <p className="text-xs text-gray-400 mt-1">
+                Modify pricing, description, specifications, and model details.
+              </p>
             </div>
-
-            {/* Panel Color */}
-            <label className="font-semibold text-gray-700">Panel Color:</label>
-            <div className="flex items-center gap-2">
-              <select
-                name="panelcolor"
-                value={formData.panelcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input type="color" name="panelcolor" value={formData.panelcolor} onChange={handleChange} />
-            </div>
-
-            {/* Text Color */}
-            <label className="font-semibold text-gray-700">Text Color:</label>
-            <div className="flex items-center gap-2">
-              <select
-                name="textcolor"
-                value={formData.textcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input type="color" name="textcolor" value={formData.textcolor} onChange={handleChange} />
-            </div>
-
-            {/* Details */}
-            <label className="font-semibold text-gray-700">Product Details:</label>
-            <textarea
-              name="details"
-              value={formData.details}
-              onChange={handleChange}
-              className="border p-2 rounded-md h-20 max-h-25 min-h-12"
-            />
-
-            {/* information */}
-            <label className="font-semibold text-gray-700">Product information:</label>
-            <textarea
-              name="information"
-              value={formData.information}
-              onChange={handleChange}
-              className="border p-2 rounded-md h-20 max-h-25 min-h-12"
-            />
-
-            {/* Image Note */}
-            <label className="font-semibold text-red-500 mt-3 text-center">
-              ⚠️ Image editing is disabled for existing products.
-            </label>
-
-            {/* Submit Button */}
             <button
-              type="submit"
-              className={`py-2 px-4 rounded-md text-white ${
-                loading ? "bg-gray-500 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600"
-              }`}
-              disabled={loading}
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition"
             >
-              {loading ? "Updating..." : "Update Product"}
+              <ArrowLeft size={16} /> Back
             </button>
-            {/* Delete Button */}
+          </div>
 
+          <form onSubmit={handleSubmit} className="apple-card-dark p-8 sm:p-10 bg-white/5 border border-white/10 space-y-6">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-xs">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-2xl text-xs flex items-center gap-2">
+                <Check size={16} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Product Title</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Regular Price (₹)</label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Discounted Price (₹)</label>
+                <input
+                  type="number"
+                  name="discount"
+                  value={formData.discount}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Product Details</label>
+                <textarea
+                  name="details"
+                  value={formData.details}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white h-24"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Technical Specifications</label>
+                <textarea
+                  name="information"
+                  value={formData.information}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white h-24"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
+              <button
+                type="button"
+                onClick={handleRemoveItem}
+                className="py-3 px-6 rounded-full text-xs font-semibold bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2 border border-red-500/20"
+              >
+                <Trash2 size={16} />
+                <span>Delete Product</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="apple-btn-primary flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              >
+                <Save size={16} />
+                <span>{loading ? "Saving Changes..." : "Save Product Changes"}</span>
+              </button>
+            </div>
           </form>
-          <button
-                        onClick={() => handleRemoveItem(formData._id,formData.name)}
-                        className="px-4 w-full mt-3 py-2 bg-red-500 cursor-pointer border border-gray-300 text-black rounded-md hover:bg-gray-50 transition"
-                      >
-                        Remove Item
-                      </button>
-        </div>
+        </main>
       </div>
-    </></div>
+
+      <Footer />
+    </div>
   );
 };
 
 export default ItemsEdit;
+

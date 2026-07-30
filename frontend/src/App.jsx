@@ -56,15 +56,21 @@ const PageLoader = () => (
   </div>
 );
 
+import ScrollToTop from "./components/ScrollToTop.jsx";
+
 /* =======================
    App Component
 ======================= */
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
+
+
         <Routes>
           <Route path="/" element={<Home />} />
+
           {/* Home */}
 
           {/* User Routes */}

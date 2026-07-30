@@ -73,10 +73,6 @@ app.use("/payment", paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/ai-help", aiRoutes);
 
-// 🔹 Protected Profile Route (Requires Auth)
-app.get("/users/profile", authMiddleware, (req, res) => {
-  res.json({ message: "Profile data", user: req.user });
-});
 
 // 🔹 Error Handling Middleware
 app.use((err, req, res, next) => {

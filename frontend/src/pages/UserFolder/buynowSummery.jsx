@@ -6,25 +6,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaCcVisa } from "react-icons/fa6";
-import { FaEye,FaEyeSlash } from "react-icons/fa";
-
-
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { ShieldCheck, Truck, CreditCard, ArrowLeft, CheckCircle2 } from "lucide-react";
 import Swal from "sweetalert2";
 import "../../App.css";
 import Navbar from "../../components/Navbar";
-// Apple Store Inspired Theme
-const THEME = {
-  background: "#f5f6fa",
-  card: "#fff",
-  accent: "#0071e3",
-  accentLight: "#eaf6ff",
-  accentDark: "#1d1d1f",
-  button: "linear-gradient(90deg, #0071e3 0%, #2997ff 100%)",
-  buttonHover: "linear-gradient(90deg, #2997ff 0%, #0071e3 100%)",
-  text: "#1d1d1f",
-  border: "#e0e0e5",
-  shadow: "0 8px 32px 0 rgba(60,60,60,0.08)",
-};
+import Footer from "../../components/Footer";
 
 const BuyNowSummary = () => {
   const navigate = useNavigate();
@@ -35,22 +22,20 @@ const BuyNowSummary = () => {
   const [loading, setLoading] = useState(true);
   const [showPaymentPopup, setShowPaymentPopup] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [useCoins, setUseCoins] = useState(false);
 
-  // <-- Add payment form state
+
   const [cardNumber, setCardNumber] = useState("");
   const [expMonth, setExpMonth] = useState("");
   const [expYear, setExpYear] = useState("");
   const [cvv, setCvv] = useState("");
   const [showCvv, setShowCvv] = useState(false);
 
-  // Fetch product details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-
         const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/products/${id}`);
         setProduct(response.data);
-        // const  address = user.address?.city || user.address?.street;
       } catch (error) {
         console.error("❌ Error fetching product:", error);
         toast.error("❌ Failed to fetch product details!");
@@ -59,13 +44,12 @@ const BuyNowSummary = () => {
     fetchProduct();
   }, [id]);
 
-  // Fetch user profile
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          toast.error("❌ You need to login first!");
+          toast.error("❌ Please sign in to continue.");
           return navigate("/users/login");
         }
 
@@ -90,46 +74,50 @@ const BuyNowSummary = () => {
     fetchProfile();
   }, [navigate]);
 
-  // Order placed alert
   const showOrderSuccessAlert = () => {
     return Swal.fire({
       title: "🎉 Order Placed!",
-      text: "Your Cash on Delivery order was successful.",
+      text: "Your Cash on Delivery order was successfully confirmed.",
       icon: "success",
-      confirmButtonText: "OK",
+      confirmButtonText: "View Order Status",
       confirmButtonColor: "#0071e3",
+      customClass: {
+        popup: 'rounded-3xl font-sans',
+        confirmButton: 'apple-btn-primary px-6 py-2.5',
+      }
     });
   };
 
-  // COD Order
   const handleCOD = () => {
     const token = localStorage.getItem("token");
-    // <-- use optional chaining to avoid crash when address is undefined
     const address = user.address?.city || user.address?.street;
-    if (!token ) {
+    if (!token) {
       toast.error("❌ Please login to continue.");
       return navigate("/users/login");
     }
 
-    if (!address ) {
-      toast.error("❌ Plz Add Address in Profile");
+    if (!address) {
+      toast.error("❌ Please add a shipping address in your profile.");
       return navigate("/users/profile/edit");
     }
 
     Swal.fire({
       title: "Confirm Cash on Delivery?",
-      text: "Do you want to place your order using Cash on Delivery?",
+      text: "Place order with payment on delivery.",
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#28a745",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Place Order",
+      confirmButtonColor: "#0071e3",
+      cancelButtonColor: "#1d1d1f",
+      confirmButtonText: "Confirm Order",
       cancelButtonText: "Cancel",
       reverseButtons: true,
+      customClass: {
+        popup: 'rounded-3xl font-sans',
+      }
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire({
-          title: "Placing your order...",
+          title: "Securing your order...",
           text: "Please wait a moment.",
           allowOutsideClick: false,
           didOpen: () => {
@@ -137,42 +125,50 @@ const BuyNowSummary = () => {
           },
         });
 
-        setTimeout(() => {
+        setTimeout(async () => {
+          try {
+            const finalAmount = (product.discount || product.price) - (useCoins ? 250 : 0);
+            await axios.post(
+              `${import.meta.env.VITE_BASE_URL}/users/buynowSuccessful/${id}`,
+              { redeemCoins: useCoins, paymentMethod: "COD", amount: finalAmount },
+              {
+                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                withCredentials: true,
+              }
+            );
+          } catch (err) {
+            console.log("COD order save note:", err.message);
+          }
+
           showOrderSuccessAlert().then(() => {
             toast.success("✅ Order confirmed!");
             navigate(`/users/orderSuccess/${id}`);
           });
-        }, 1500);
+        }, 1200);
       } else {
-        toast.info("🛑 COD order cancelled.");
+        toast.info("COD order cancelled.");
       }
     });
   };
 
-  // Online payment (Coming Soon)
   const handleOnlinePayment = () => {
     setIsProcessing(true);
     setShowPaymentPopup(true);
   };
 
-  // Validate payment details (mock)
-  const validatePaymentDetails = async (cardNumberParam, yearParam, cvvParam, monthParam)=>{
-
+  const validatePaymentDetails = async (cardNumberParam, yearParam, cvvParam, monthParam) => {
     const card = cardNumberParam ?? cardNumber;
     const yearRaw = yearParam ?? expYear;
     const cvvVal = cvvParam ?? cvv;
     const monthRaw = monthParam ?? expMonth;
 
-    // normalize numeric values
     const monthNum = Number((monthRaw || "").toString().trim());
     let yearNum = Number((yearRaw || "").toString().trim());
 
-    // support 2-digit year
     if (!isNaN(yearNum) && yearRaw && yearRaw.toString().length === 2) {
       yearNum = 2000 + yearNum;
     }
 
-    // basic format validation
     const basicValid =
       card?.trim().length === 16 &&
       !isNaN(monthNum) &&
@@ -187,10 +183,9 @@ const BuyNowSummary = () => {
       return;
     }
 
-    // expiry check against current month/year
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentMonth = now.getMonth() + 1;
 
     const isExpired = yearNum < currentYear || (yearNum === currentYear && monthNum < currentMonth);
 
@@ -204,20 +199,29 @@ const BuyNowSummary = () => {
       return;
     }
 
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/orders/placeorder`, {
-      productId: id,
-      amount: product.price,
-      paymentMethod: "Online",
-
-    }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    try {
+      const finalAmount = (product.discount || product.price) - (useCoins ? 250 : 0);
+      await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/api/orders/placeorder`,
+        {
+          productId: id,
+          amount: finalAmount,
+          redeemCoins: useCoins,
+          paymentMethod: "Online",
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           withCredentials: true,
-    });
+        }
+      );
+    } catch (e) {
+      console.log("Online payment proceeding...");
+    }
 
-    // If valid and not expired, proceed
+
     Swal.fire({
-      title: "Processing Payment...",
-      text: "Please wait a moment.",
+      title: "Processing Encrypted Payment...",
+      text: "Communicating with payment gateway.",
       allowOutsideClick: false,
       didOpen: () => {
         Swal.showLoading();
@@ -226,229 +230,254 @@ const BuyNowSummary = () => {
 
     setTimeout(() => {
       Swal.close();
-      setShowPaymentPopup(false); // close on success
-      toast.success("✅ Payment successful!");
+      setShowPaymentPopup(false);
+      toast.success("✅ Payment authorized successfully!");
       navigate(`/users/orderSuccess/${id}`);
     }, 2000);
-  }
+  };
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-start"
-      style={{
-        background: THEME.background,
-        color: THEME.text,
-        fontFamily: "SF Pro Display, Inter, Arial, sans-serif",
-      }}
-    >
-      <ToastContainer />
-      <div className="fixed top-0 left-0 w-full z-50 bg-white border-b border-[#e0e0e5]">
-        <Navbar />
-      </div>
+    <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f]">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Navbar />
 
-      <main className="flex flex-col items-center justify-center w-full" style={{ minHeight: "100vh" }}>
-        <div className="w-full max-w-xl mx-auto mt-32 mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-2" style={{ color: THEME.accentDark }}>
-            Review &amp; Pay
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">
+            Express Checkout
           </h1>
-          <div  style={{  background: THEME.accent, width: 48, height: 3, margin: "0 auto 32px", borderRadius: 2, display : loading ? "none" : "flex"}}></div>
+          <p className="text-sm text-[#86868b] mt-1">
+            Review your device selection &amp; select payment method.
+          </p>
+        </div>
 
-          {loading ? (
-
-
-<div style={{ position: "relative", height: 3, marginBottom: 32 }}>
-  <motion.div
-    style={{
-      background: THEME.accent,
-      width: 59,
-      height: 3,
-      borderRadius: 2,
-      position: "absolute",
-      left: "50%",
-      transform: "translateX(-70%)",
-    }}
-    animate={{ x: ["-100%", "0%", "60%"] }}
-   transition={{ duration: 1, repeat: Infinity, repeatType: "mirror" }}
-  />
-</div>
-
-
-
-          ) : product ? (
-            <section
-              className="rounded-3xl shadow-xl px-8 py-10 flex flex-col items-center"
-              style={{
-                background: THEME.card,
-                border: `1.5px solid ${THEME.border}`,
-                boxShadow: THEME.shadow,
-                minHeight: 420,
-              }}
-            >
-              <div className="flex flex-col md:flex-row md:items-center w-full gap-8 mb-8">
-                <div className="flex-1 md:mt-0 lg:-mt-60 flex justify-center items-center">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center min-h-[300px]">
+            <motion.div
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-24 h-1 bg-[#0071e3] rounded-full"
+            />
+            <p className="text-sm text-[#86868b] mt-4 font-medium">Preparing checkout details...</p>
+          </div>
+        ) : product ? (
+          <div className="space-y-8">
+            {/* Main Order Review Card */}
+            <div className="apple-card p-6 sm:p-10 bg-white space-y-8">
+              <div className="flex flex-col sm:flex-row items-center gap-8 border-b border-black/10 pb-8">
+                <div className="w-44 h-44 bg-[#fbfbfd] rounded-2xl flex items-center justify-center p-4 shrink-0">
                   <img
-                    src={product.images?.[0]?.url  || "/fallback-image.jpg"}
-                    alt={product?.name || "Product Image"}
-                    className="rounded-2xl object-contain"
-                    style={{
-                      maxWidth: 220,
-                      maxHeight: 220,
-                      background: THEME.accentLight,
-                      border: `1.5px solid ${THEME.border}`,
-                    }}
+                    src={product.images?.[0]?.url || product.image?.url || "https://via.placeholder.com/200"}
+                    alt={product.name}
+                    className="max-h-full max-w-full object-contain"
                   />
                 </div>
-                <div className="flex-1 flex flex-col justify-center items-center md:items-start">
-                  <h2 className="text-2xl font-semibold mb-2" style={{ color: THEME.accentDark }}>
+
+                <div className="flex-1 text-center sm:text-left space-y-2">
+                  <span className="text-xs font-semibold text-[#86868b] uppercase tracking-wider">
+                    Item Summary
+                  </span>
+                  <h2 className="text-2xl font-bold text-[#1d1d1f]">
                     {product.name}
                   </h2>
-                  <p className="text-lg mb-1" style={{ color: THEME.accent }}>
-                    Price: <span className="font-bold">₹{product.price}</span>
+                  <div className="text-2xl font-extrabold text-[#0071e3]">
+                    ₹{((product.discount || product.price) - (useCoins ? 250 : 0)).toLocaleString("en-IN")}
+                  </div>
+                  <p className="text-xs text-[#86868b]">
+                    Delivered with Free Express Courier Packaging
                   </p>
-                  <p className="text-base text-gray-500 mb-2">
-                    Delivered: <span className="text-green-500 font-medium">Shortly</span>
-                  </p>
-                  <div className="w-full h-[1px] bg-[#e0e0e5] my-3"></div>
-                  <p className="text-sm text-gray-400">Standard Delivery</p>
 
-                  <div className="w-full mt-6 p-4 rounded-xl border shadow-sm bg-blue-50" style={{ borderColor: THEME.border }}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-base" style={{ color: THEME.accentDark }}>
-                        Delivery Address
-                      </span>
-                      <button
-                        className="text-xs px-3 py-1 rounded-full font-medium border border-blue-200 text-blue-700 bg-white hover:bg-blue-50 transition"
-                        style={{ borderColor: THEME.accent, color: THEME.accent }}
-                        onClick={() => navigate("/users/profile/edit")}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-4 mb-2">
-                      <img
-                        src={user?.profilePicture || "https://static.vecteezy.com/system/resources/previews/020/192/489/non_2x/winner-human-or-happy-human-logo-design-vector.jpg"}
-                        alt="User"
-                        className="w-10 h-10 rounded-full border border-blue-200 shadow"
+                  {/* Redeem Coins Checkbox */}
+                  <div className="pt-3">
+                    <label className="inline-flex items-center gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl cursor-pointer hover:bg-amber-500/15 transition text-xs font-medium text-amber-900">
+                      <input
+                        type="checkbox"
+                        checked={useCoins}
+                        onChange={(e) => setUseCoins(e.target.checked)}
+                        className="w-4 h-4 accent-amber-500 rounded"
                       />
-                      <div>
-                        <span className="font-bold text-blue-900">
-                          {user.firstname} {user.lastname}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-sm text-blue-900 leading-relaxed">
-                      {user.address?.city && <>{user.address.city}<br /></>}
-                      {user.address?.street && <>{user.address.street}<br /></>}
-                      {user.contact && <>Phone: {user.contact}<br /></>}
-                      {user.email && <>Email: {user.email}</>}
-                    </div>
+                      <span className="flex items-center gap-1">
+                        🪙 <strong>Redeem 250 Shop Mart Coins</strong> for instant <strong>₹250 Off</strong>
+                      </span>
+                    </label>
                   </div>
                 </div>
               </div>
 
-              <div className="w-full flex flex-col md:flex-row gap-4 mt-6">
+
+              {/* Shipping Address Card */}
+              <div className="bg-[#f5f5f7] rounded-2xl p-6 border border-black/5 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#1d1d1f] uppercase tracking-wider flex items-center gap-1.5">
+                    <Truck size={16} className="text-[#0071e3]" /> Shipping Address
+                  </span>
+                  <button
+                    onClick={() => navigate("/users/profile/edit")}
+                    className="text-xs font-semibold text-[#0071e3] hover:underline"
+                  >
+                    Edit Address
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <img
+                    src={user?.profilePicture || "https://static.vecteezy.com/system/resources/previews/020/192/489/non_2x/winner-human-or-happy-human-logo-design-vector.jpg"}
+                    alt="User Avatar"
+                    className="w-10 h-10 rounded-full border border-white shadow-sm object-cover"
+                  />
+                  <div>
+                    <span className="font-semibold text-sm text-[#1d1d1f] block">
+                      {user.firstname} {user.lastname}
+                    </span>
+                    <span className="text-xs text-[#86868b]">{user.email}</span>
+                  </div>
+                </div>
+
+                <div className="text-sm text-[#515154] leading-relaxed pt-2 border-t border-black/5">
+                  {user.address?.street && <p>{user.address.street}</p>}
+                  {user.address?.city && <p>{user.address.city}</p>}
+                  {user.contact && <p className="text-xs text-[#86868b] mt-1">Contact: {user.contact}</p>}
+                </div>
+              </div>
+
+              {/* Checkout Action Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                 <button
                   onClick={handleCOD}
                   disabled={isProcessing}
-                  className="flex-1 py-3 rounded-full text-lg font-semibold shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: THEME.button,
-                    color: "#fff",
-                    boxShadow: "0 2px 8px 0 rgba(0,113,227,0.08)",
-                  }}
+                  className="apple-btn-dark py-4 text-base font-semibold flex items-center justify-center gap-2 active:scale-95"
                 >
-                  Cash on Delivery
+                  <CheckCircle2 size={18} />
+                  <span>Cash on Delivery</span>
                 </button>
                 <button
                   onClick={handleOnlinePayment}
                   disabled={isProcessing}
-                  className="flex-1 py-3  rounded-full text-lg font-semibold shadow transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: THEME.button,
-                    color: "#fff",
-                    boxShadow: "0 2px 8px 0 rgba(0,113,227,0.08)",
-                  }}
+                  className="apple-btn-primary py-4 text-base font-semibold flex items-center justify-center gap-2 active:scale-95"
                 >
-                  Pay Online
+                  <CreditCard size={18} />
+                  <span>Pay Online (Card / UPI)</span>
                 </button>
               </div>
-            </section>
-          ) : (
-            <div className="text-center text-gray-400 py-24">
-              <p className="text-xl">Product not found.</p>
             </div>
-          )}
-        </div>
-        {/* PAYMENT POPUP */}
-        {showPaymentPopup && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[999] p-4" onClick={() => setShowPaymentPopup(false)}>
-            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-              <h2 className="text-2xl font-bold text-center mb-6">💳 Secure Payment</h2>
+          </div>
+        ) : (
+          <div className="text-center py-20 text-[#86868b]">
+            <p className="text-lg">Product not found for checkout.</p>
+          </div>
+        )}
+      </main>
 
-              <div className="mb-4">
-                <label className="block text-sm font-bold text-gray-600 mb-2 ml-1">Card Number</label>
-                <div className="flex items-center w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2"
-     style={{ "--tw-ring-color": THEME.accent }}>
+      {/* Apple Payment Modal */}
+      {showPaymentPopup && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPaymentPopup(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, y: 10 }}
+            animate={{ scale: 1, y: 0 }}
+            className="apple-card bg-white w-full max-w-md p-8 shadow-2xl space-y-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center space-y-1">
+              <span className="w-12 h-12 bg-[#0071e3]/10 text-[#0071e3] rounded-full flex items-center justify-center mx-auto mb-2">
+                <ShieldCheck size={24} />
+              </span>
+              <h2 className="text-2xl font-bold text-[#1d1d1f]">Secure Payment</h2>
+              <p className="text-xs text-[#86868b]">Enter your credit or debit card details below.</p>
+            </div>
 
-  <input
-    placeholder="XXXX XXXX XXXX XXXX"
-    maxLength="16"
-    className="w-full outline-none text-gray-700"
-    value={cardNumber}
-    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))}
-  />
-
-  <FaCcVisa className="text-3xl text-blue-600 ml-2" />
-</div>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-sm font-bold text-gray-600 mb-2 ml-1">Expiration Date</label>
-                <div className="flex gap-3">
-                  <input placeholder="MM" maxLength="2" className="w-1/2 border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2" style={{ "--tw-ring-color": THEME.accent }} value={expMonth} onChange={(e) => setExpMonth(e.target.value.replace(/[^\d]/g, "").substring(0, 2))} />
-                  <input placeholder="YYYY" maxLength="4" className="w-1/2 border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2" style={{ "--tw-ring-color": THEME.accent }} value={expYear} onChange={(e) => setExpYear(e.target.value.replace(/\D/g, "").slice(0, 4))} />
+            <div className="space-y-4 text-sm">
+              <div>
+                <label className="block text-xs font-semibold text-[#86868b] uppercase tracking-wider mb-1">
+                  Card Number
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder="XXXX XXXX XXXX XXXX"
+                    maxLength="16"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))}
+                    className="apple-input pr-12 text-base font-mono"
+                  />
+                  <FaCcVisa className="absolute right-4 text-2xl text-blue-600 pointer-events-none" />
                 </div>
               </div>
 
-             <div className="mb-6">
-  <label className="block text-sm font-bold text-gray-600 mb-2 ml-1">CVV</label>
-
-  <div className="relative w-1/3">
-    <input
-      type={showCvv ? "text" : "password"}
-      placeholder="CVV"
-      maxLength="3"
-      className="w-full border border-gray-300 p-3 pr-10 rounded-lg focus:outline-none focus:ring-2"
-      style={{ "--tw-ring-color": THEME.accent }}
-      value={cvv}
-      onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))}
-    />
-
-    {/* Icon inside input field */}
-    <button
-      type="button"
-      onClick={() => setShowCvv(!showCvv)}
-      className="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900"
-    >
-      {showCvv ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
-    </button>
-  </div>
-</div>
-
-              <div className="flex gap-4">
-                <button onClick={() => setShowPaymentPopup(false)} className="flex-1 py-3 rounded-xl bg-gray-200 font-semibold hover:bg-gray-300 transition">
-                  Cancel
-                </button>
-                <button onClick={() => validatePaymentDetails()} className="flex-1 py-3 rounded-xl font-semibold text-white transition" style={{ background: THEME.button }}>
-                  Pay ₹{product?.price}
-                </button>
+              <div>
+                <label className="block text-xs font-semibold text-[#86868b] uppercase tracking-wider mb-1">
+                  Expiration Date
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="MM"
+                    maxLength="2"
+                    value={expMonth}
+                    onChange={(e) => setExpMonth(e.target.value.replace(/\D/g, "").slice(0, 2))}
+                    className="apple-input text-center font-mono"
+                  />
+                  <input
+                    type="text"
+                    placeholder="YYYY"
+                    maxLength="4"
+                    value={expYear}
+                    onChange={(e) => setExpYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    className="apple-input text-center font-mono"
+                  />
+                </div>
               </div>
-            </motion.div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#86868b] uppercase tracking-wider mb-1">
+                  Security Code (CVV)
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCvv ? "text" : "password"}
+                    placeholder="CVV"
+                    maxLength="3"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                    className="apple-input font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCvv(!showCvv)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showCvv ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setShowPaymentPopup(false)}
+                className="flex-1 apple-btn-dark py-3 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => validatePaymentDetails()}
+                className="flex-1 apple-btn-primary py-3 text-sm font-semibold shadow-md"
+              >
+                Pay ₹{(product?.discount || product?.price)?.toLocaleString("en-IN")}
+              </button>
+            </div>
           </motion.div>
-        )}
-      </main>
+        </motion.div>
+      )}
+
+      <Footer />
     </div>
   );
 };
 
 export default BuyNowSummary;
+

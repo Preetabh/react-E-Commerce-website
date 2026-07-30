@@ -80,7 +80,7 @@ productControllers.addProduct = async (req, res) => {
   }
 };
 
-// ✅ Get All Productˀ
+// ✅ Get All Products
 
 productControllers.getAllProducts = async (req, res) => {
   try {

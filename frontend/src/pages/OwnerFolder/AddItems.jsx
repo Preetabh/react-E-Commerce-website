@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Navbar from "../../components/OwnerNavbar.jsx";
+import OwnerNavbar from "../../components/OwnerNavbar.jsx";
+import Footer from "../../components/Footer.jsx";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { Upload, X, PlusCircle, Check } from "lucide-react";
+import "../../App.css";
 
 const colorOptions = [
   { name: "White", value: "#ffffff" },
@@ -24,7 +27,7 @@ const AddItems = () => {
     textcolor: "#000000",
     details: "",
     information: "",
-    category:"",
+    category: "",
     images: [],
   });
   const [previewImages, setPreviewImages] = useState([]);
@@ -32,7 +35,6 @@ const AddItems = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Login first plz... ");
       navigate("/owner/login");
     }
   }, [navigate]);
@@ -55,7 +57,6 @@ const AddItems = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
 
-    // Limit to maximum 5 images
     if (formData.images.length + files.length > 5) {
       setError("Maximum 5 images allowed");
       return;
@@ -63,10 +64,9 @@ const AddItems = () => {
 
     setFormData((prev) => ({ ...prev, images: [...prev.images, ...files] }));
 
-    // Create preview URLs for the images
     const newPreviewUrls = files.map((file) => URL.createObjectURL(file));
     setPreviewImages((prev) => [...prev, ...newPreviewUrls]);
-    setError(""); // Clear any previous errors
+    setError("");
   };
 
   const removeImage = (index) => {
@@ -75,7 +75,6 @@ const AddItems = () => {
       images: prev.images.filter((_, i) => i !== index),
     }));
 
-    // Revoke the URL to prevent memory leaks
     URL.revokeObjectURL(previewImages[index]);
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -83,20 +82,23 @@ const AddItems = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check for minimum 3 images
     if (formData.images.length < 3) {
       setError("Please upload at least 3 images for the product");
       return;
     }
 
     const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "Do you want to add this product?",
-      icon: "warning",
+      title: "Confirm New Product?",
+      text: "Publish this device model to the Shop Mart store catalog?",
+      icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, add it!",
+      confirmButtonColor: "#0071e3",
+      cancelButtonColor: "#1d1d1f",
+      confirmButtonText: "Yes, Publish",
+      cancelButtonText: "Cancel",
+      customClass: {
+        popup: 'rounded-3xl font-sans bg-[#1d1d1f] text-white',
+      }
     });
 
     if (!result.isConfirmed) return;
@@ -115,15 +117,13 @@ const AddItems = () => {
 
     try {
       const data = new FormData();
-      // Append all non-file data
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== "images") {
           data.append(key, value);
         }
       });
 
-      // Append each image file
-      formData.images.forEach((image, index) => {
+      formData.images.forEach((image) => {
         data.append(`images`, image);
       });
 
@@ -138,9 +138,8 @@ const AddItems = () => {
         }
       );
 
-      setSuccess(response.data.message);
+      setSuccess(response.data.message || "Product published successfully!");
 
-      // Reset form
       setFormData({
         name: "",
         price: "",
@@ -150,11 +149,10 @@ const AddItems = () => {
         textcolor: "#000000",
         details: "",
         information: "",
-        category:"",
+        category: "",
         images: [],
       });
 
-      // Clear preview images and revoke URLs
       previewImages.forEach((url) => URL.revokeObjectURL(url));
       setPreviewImages([]);
     } catch (error) {
@@ -165,229 +163,162 @@ const AddItems = () => {
   };
 
   return (
-    <>
-      <Navbar />
+    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+      <div>
+        <OwnerNavbar />
 
-      <div className="flex justify-center items-center bg-gray-100 min-h-screen py-6 ">
-        <div className="max-w-3xl w-full bg-white shadow-md rounded-lg p-6 overflow-y-auto mt-12 h-[84vh]">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4 text-center">
-            Add New Product
-          </h2>
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <div className="mb-8 pb-6 border-b border-white/10">
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Add New Product Catalog Entry
+            </h1>
+            <p className="text-xs text-gray-400 mt-1">
+              Specify pricing, categories, and high-resolution images.
+            </p>
+          </div>
 
-          {error && <p className="text-red-500">{error}</p>}
-          {success && <p className="text-green-500">{success}</p>}
-
-          <form onSubmit={handleSubmit} className="grid gap-3">
-            {/* Product Name */}
-            <label className="font-semibold text-gray-700">Product Name:</label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Enter Product Name"
-              value={formData.name}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Price */}
-            <label className="font-semibold text-gray-700">Price:</label>
-            <input
-              type="number"
-              name="price"
-              placeholder="Enter Price"
-              value={formData.price}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Discount */}
-            <label className="font-semibold text-gray-700">
-              Discount Amount:
-            </label>
-            <input
-              type="number"
-              name="discount"
-              placeholder="Enter Discount Amount"
-              value={formData.discount}
-              onChange={handleChange}
-              className="border p-2 rounded-md"
-            />
-
-            {/* Background Color */}
-            <label className="font-semibold text-gray-700">
-              Background Color:
-            </label>
-            <div className="flex items-center gap-2">
-              <select
-                name="bgcolor"
-                value={formData.bgcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="color"
-                name="bgcolor"
-                value={formData.bgcolor}
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* Panel Color */}
-            <label className="font-semibold text-gray-700">Panel Color:</label>
-            <div className="flex items-center gap-2">
-              <select
-                name="panelcolor"
-                value={formData.panelcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="color"
-                name="panelcolor"
-                value={formData.panelcolor}
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* Text Color */}
-            <label className="font-semibold text-gray-700">Text Color:</label>
-            <div className="flex items-center gap-2">
-              <select
-                name="textcolor"
-                value={formData.textcolor}
-                onChange={handleChange}
-                className="border p-2 rounded-md w-full"
-              >
-                {colorOptions.map((color) => (
-                  <option key={color.value} value={color.value}>
-                    {color.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="color"
-                name="textcolor"
-                value={formData.textcolor}
-                onChange={handleChange}
-              />
-            </div>
-
-            {/* details */}
-            <label className="font-semibold text-gray-700">
-              Product details:
-            </label>
-            <textarea
-              name="details"
-              placeholder="Enter Product details"
-              value={formData.details}
-              onChange={handleChange}
-              className="border p-2 rounded-md h-20"
-            />
-
-            {/* Product Information */}
-            <label className="font-semibold text-gray-700">
-              Product Information:
-            </label>
-           <textarea
-  name="information"
-  placeholder="Enter Product Information"
-  value={formData.information}
-  onChange={handleChange}
-  className="border p-2 rounded-md h-20"
-/>
-
-            {/* category Information */}
-            <label className="font-semibold text-gray-700">
-              category Information:
-            </label>
-           <textarea
-  name="category"
-  placeholder="Enter category Information"
-  value={formData.category}
-  onChange={handleChange}
-  className="border p-2 rounded-md h-20"
-/>
-
-
-
-            {/* Image Upload */}
-            <label className="font-semibold text-gray-700">
-              Upload Product Images:
-              <span className="text-sm text-gray-500 ml-2">
-                (Minimum 3, Maximum 5 images required)
-              </span>
-            </label>
-            <div className="flex flex-col gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                name="images"
-                onChange={handleImageChange}
-                multiple
-                className="border p-2 rounded-md"
-              />
-              <p className="text-sm text-blue-600">
-                Selected: {formData.images.length} of 5 images
-                {formData.images.length < 3 && (
-                  <span className="text-red-500">
-                    {" "}
-                    (Need at least {3 - formData.images.length} more)
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Image Previews */}
-            {previewImages.length > 0 && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                {previewImages.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg border border-gray-300"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+          <form onSubmit={handleSubmit} className="apple-card-dark p-8 sm:p-10 bg-white/5 border border-white/10 space-y-6">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-xs">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-2xl text-xs flex items-center gap-2">
+                <Check size={16} />
+                <span>{success}</span>
               </div>
             )}
 
-            {/* Submit Button */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Product Title</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="e.g. iPhone 15 Pro Max 256GB Titanium"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Regular Price (₹)</label>
+                <input
+                  type="number"
+                  name="price"
+                  placeholder="129900"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Discounted Price (₹)</label>
+                <input
+                  type="number"
+                  name="discount"
+                  placeholder="119900"
+                  value={formData.discount}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Category</label>
+                <input
+                  type="text"
+                  name="category"
+                  placeholder="e.g. Mobiles, Laptops, Audio"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Product Details &amp; Overview</label>
+                <textarea
+                  name="details"
+                  placeholder="Enter detailed description..."
+                  value={formData.details}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500 h-24"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-gray-400 font-semibold mb-1">Technical Specifications</label>
+                <textarea
+                  name="information"
+                  placeholder="Processor, Display, Battery, Specs..."
+                  value={formData.information}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white placeholder-gray-500 h-24"
+                />
+              </div>
+            </div>
+
+            {/* Product Image Uploader */}
+            <div className="space-y-3 pt-2">
+              <label className="block text-xs font-semibold text-gray-400">
+                Upload Product Gallery Images (Min 3, Max 5)
+              </label>
+              
+              <div className="border-2 border-dashed border-white/10 hover:border-blue-500/50 rounded-2xl p-6 text-center cursor-pointer transition bg-white/5">
+                <input
+                  type="file"
+                  accept="image/*"
+                  name="images"
+                  onChange={handleImageChange}
+                  multiple
+                  className="hidden"
+                  id="imageUploadInput"
+                />
+                <label htmlFor="imageUploadInput" className="cursor-pointer flex flex-col items-center gap-2">
+                  <Upload size={28} className="text-blue-400" />
+                  <span className="text-xs font-semibold text-white">Click to upload product photos</span>
+                  <span className="text-[11px] text-gray-400">Selected {formData.images.length} of 5 images</span>
+                </label>
+              </div>
+
+              {previewImages.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 pt-2">
+                  {previewImages.map((url, index) => (
+                    <div key={index} className="relative group w-full h-24 bg-white/5 rounded-xl border border-white/10 p-2 overflow-hidden">
+                      <img src={url} alt={`Preview ${index}`} className="w-full h-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-80 hover:opacity-100"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="submit"
-              className={`py-2 px-4 rounded-md text-white ${
-                loading
-                  ? "bg-gray-500 cursor-not-allowed"
-                  : "bg-blue-500 hover:bg-blue-600"
-              }`}
               disabled={loading}
+              className="w-full apple-btn-primary py-3.5 text-sm font-semibold flex items-center justify-center gap-2 mt-6 active:scale-95 disabled:opacity-50"
             >
-              {loading ? "Adding..." : "Add Product"}
+              <PlusCircle size={18} />
+              <span>{loading ? "Publishing Product..." : "Publish Product"}</span>
             </button>
           </form>
-        </div>
+        </main>
       </div>
-    </>
+
+      <Footer />
+    </div>
   );
 };
 
 export default AddItems;
+

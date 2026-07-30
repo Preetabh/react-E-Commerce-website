@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../../components/Navbar.jsx";
-import { ArrowLeft } from "lucide-react";
+import OwnerNavbar from "../../components/OwnerNavbar.jsx";
+import Footer from "../../components/Footer.jsx";
+import { ArrowLeft, Camera, Check } from "lucide-react";
 import "../../App.css";
 
 const UserProfileEdit = () => {
@@ -110,76 +111,126 @@ const UserProfileEdit = () => {
   };
 
   return (
-    <div style={{
-      fontFamily: '"Gidole", sans-serif',
-      fontWeight: 400,
-      fontStyle: "normal",
-    }}>
-      <Header />
-      <button
-        className="absolute top-20 left-6 flex items-center text-gray-700"
-        onClick={() => navigate("/owner/profile")}
-      >
-        <ArrowLeft className="w-5 h-5 mr-2" /> Back
-      </button>
+    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+      <div>
+        <OwnerNavbar />
 
-      <div className="mt-6 w-full max-w-4xl p-6 absolute top-20 left-1/2 -translate-x-1/2 bg-white shadow-md rounded-lg">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">Edit Profile</h1>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Profile Picture Preview */}
-          <div className="flex flex-col items-center">
-            <img
-              src={previewImage || "https://via.placeholder.com/150"}
-              alt="Profile Preview"
-              className="w-24 h-24 rounded-full border-4 border-gray-300 shadow-lg object-cover"
-            />
-            <label
-              htmlFor="profilePicture"
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md cursor-pointer"
+        <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">
+                Edit Administrator Profile
+              </h1>
+              <p className="text-xs text-gray-400 mt-1">
+                Update account info and profile picture.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/owner/profile")}
+              className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition"
             >
-              Choose Picture
-            </label>
-            <input
-              type="file"
-              id="profilePicture"
-              name="profilePicture"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
+              <ArrowLeft size={16} /> Back
+            </button>
           </div>
 
-          {/* Form Fields */}
-          {["firstname", "lastname", "email", "contact"].map((field) => (
-            <div key={field} className="flex flex-col gap-2">
-              <label className="text-gray-700 font-medium">
-                {field.charAt(0).toUpperCase() + field.slice(1)}
+          <form onSubmit={handleSubmit} className="apple-card-dark p-8 sm:p-10 bg-white/5 border border-white/10 space-y-6">
+            <div className="flex flex-col items-center">
+              <label htmlFor="profilePicture" className="relative cursor-pointer group">
+                <img
+                  src={previewImage || "https://img.icons8.com/ios7/1200/landlord.jpg"}
+                  alt="Profile Preview"
+                  className="w-28 h-28 rounded-full border-2 border-white/10 shadow-md object-cover group-hover:opacity-80 transition"
+                />
+                <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-md">
+                  <Camera size={16} />
+                </div>
               </label>
+              <span className="text-xs text-gray-400 mt-2 font-medium">Click photo to update avatar</span>
               <input
-                type="text"
-                name={field}
-                value={userData[field]}
-                onChange={handleChange}
-                className="border p-2 rounded-md"
-                required
+                type="file"
+                id="profilePicture"
+                name="profilePicture"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
               />
             </div>
-          ))}
 
-          <button
-            type="submit"
-            className={`p-2 rounded-md text-white ${
-              isLoading ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
-            }`}
-            disabled={isLoading}
-          >
-            {isLoading ? "Saving..." : "Save Changes"}
-          </button>
-        </form>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">First Name</label>
+                <input
+                  type="text"
+                  name="firstname"
+                  value={userData.firstname}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Last Name</label>
+                <input
+                  type="text"
+                  name="lastname"
+                  value={userData.lastname}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Admin Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={userData.email}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-400 font-semibold mb-1">Contact Phone</label>
+                <input
+                  type="text"
+                  name="contact"
+                  value={userData.contact}
+                  onChange={handleChange}
+                  className="apple-input bg-white/5 border-white/10 text-white"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+              <button
+                type="button"
+                onClick={() => navigate("/owner/profile")}
+                className="py-3 px-6 rounded-full text-xs font-semibold bg-white/10 text-gray-300 hover:bg-white/20 transition flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="apple-btn-primary flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              >
+                <Check size={16} />
+                <span>{isLoading ? "Saving..." : "Save Admin Profile"}</span>
+              </button>
+            </div>
+          </form>
+        </main>
       </div>
+
+      <Footer />
     </div>
   );
 };
 
 export default UserProfileEdit;
+

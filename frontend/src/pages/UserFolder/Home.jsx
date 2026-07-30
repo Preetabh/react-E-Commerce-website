@@ -2,7 +2,7 @@
 import Lenis from "@studio-freight/lenis";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { PackageX } from "lucide-react";
+import { PackageX, Search, ShoppingBag, ArrowRight, Sparkles, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   FaCamera,
@@ -18,8 +18,11 @@ import "toastify-js/src/toastify.css";
 import "../../App.css";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import Prism from "../../components/Prism.jsx";
 
 const Home = () => {
+
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,18 +32,22 @@ const Home = () => {
 
   const banners = [
     {
-      title: "🔥 Mega Sale - Up to 50% Off!",
-      subtitle: "Shop the best deals before they run out!",
+      title: "Store. The best way to buy the products you love.",
+      subtitle: "Discover the newest gadgets, ultimate speed, and timeless design.",
+      tag: "FLAGSHIP SELECTION",
     },
     {
-      title: "🆕 New Arrivals Just Landed!",
-      subtitle: "Explore the latest collection now!",
+      title: "Pro performance. Sleek aesthetic.",
+      subtitle: "Unmatched clarity and next-gen audio hardware at incredible prices.",
+      tag: "NEW ARRIVALS",
     },
     {
-      title: "⚡ Limited Time Offer!",
-      subtitle: "Exclusive discounts on top brands!",
+      title: "Designed to amaze. Crafted to last.",
+      subtitle: "Get up to 30% off on flagship products with instant delivery.",
+      tag: "LIMITED EDITION",
     },
   ];
+
   const bannersImage = [
     {
       image:
@@ -57,13 +64,13 @@ const Home = () => {
   ];
 
   const categoryList = [
-    { label: "All", value: "" },
-    { label: "Electronics", value: "electronics", icon: <FaMobileAlt /> },
-    { label: "TV", value: "tv", icon: <FaTv /> },
-    { label: "Monitor", value: "monitor", icon: <FaLaptop /> },
-    { label: "Watch", value: "watch", icon: <FaClock /> },
+    { label: "All Items", value: "" },
+    { label: "Phones", value: "electronics", icon: <FaMobileAlt /> },
+    { label: "TVs", value: "tv", icon: <FaTv /> },
+    { label: "Monitors", value: "monitor", icon: <FaLaptop /> },
+    { label: "Watches", value: "watch", icon: <FaClock /> },
     { label: "Headphones", value: "headphones", icon: <FaHeadphones /> },
-    { label: "Camera", value: "camera", icon: <FaCamera /> },
+    { label: "Cameras", value: "camera", icon: <FaCamera /> },
   ];
 
   useEffect(() => {
@@ -95,9 +102,8 @@ const Home = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setBannerIndex((prevIndex) => (prevIndex + 1) % banners.length);
-    }, 5000);
+    }, 5500);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addToCart = async (productId, productName) => {
@@ -105,15 +111,16 @@ const Home = () => {
       const token = localStorage.getItem("token");
       if (!token) {
         Toastify({
-          text: `First login to add to cart.`,
+          text: `Please sign in to add items to your Bag.`,
           duration: 3000,
           gravity: "top",
           position: "right",
           style: {
-            background: "red",
+            background: "#1d1d1f",
             color: "#fff",
-            borderRadius: "8px",
-            fontWeight: "bold",
+            borderRadius: "12px",
+            fontWeight: "500",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.2)",
           },
         }).showToast();
         return navigate("/users/login");
@@ -129,29 +136,30 @@ const Home = () => {
       );
 
       Toastify({
-        text: `🛒 ${productName} added to cart!`,
+        text: `🛒 ${productName} added to Bag`,
         duration: 3000,
         gravity: "top",
         position: "right",
         style: {
-          background: "blue",
+          background: "#0071e3",
           color: "#fff",
-          borderRadius: "8px",
-          fontWeight: "bold",
+          borderRadius: "12px",
+          fontWeight: "500",
+          boxShadow: "0 10px 25px rgba(0,113,227,0.3)",
         },
       }).showToast();
     } catch (error) {
       console.error("❌ Error adding to cart:", error);
       Toastify({
-        text: "❌ Failed to add product to cart",
+        text: "❌ Could not add product to Bag",
         duration: 3000,
         gravity: "top",
         position: "right",
         style: {
-          background: "#FF5733",
+          background: "#ff3b30",
           color: "#fff",
-          borderRadius: "8px",
-          fontWeight: "bold",
+          borderRadius: "12px",
+          fontWeight: "500",
         },
       }).showToast();
     }
@@ -168,205 +176,307 @@ const Home = () => {
           product.category.toLowerCase().includes(selectedCategory)
     );
 
-  const renderProductCard = (product) => (
-    <motion.div
-      key={product._id}
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: 0.05 }}
-      className="relative group bg-white p-4 rounded-xl shadow-lg hover:shadow-blue-400 hover:shadow-4xl transition-all  border-gray-200 hover:border-blue-900 border-2 hover:scale-101  duration-500 "
-      style={{
-        backgroundColor: "#ffffff",
-        color: product.textcolor || "#000000",
-      }}
-    >
-      <Link to={`/products/${product._id}`}>
-        <div className="relative h-48 rounded-lg overflow-hidden">
-          <img
-            src={
-              product.images?.[0]?.url ||
-              product.image?.url ||
-              "https://via.placeholder.com/150"
-            }
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              e.target.src = "https://via.placeholder.com/150";
-              e.target.onerror = null;
-            }}
-          />
-          {product.discount && (
-            <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
-              Save ₹{product.price - product.discount}
+  // 3D Card Tilt state helper
+  const handleMouseMove3D = (e) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -10;
+    const rotateY = ((x - centerX) / centerX) * 10;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
+
+  const handleMouseLeave3D = (e) => {
+    const card = e.currentTarget;
+    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+  };
+
+  const renderProductCard = (product) => {
+    const hasDiscount = product.discount && product.price > product.discount;
+    const discountAmt = hasDiscount ? product.price - product.discount : 0;
+
+    return (
+      <motion.div
+        key={product._id}
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        onMouseMove={handleMouseMove3D}
+        onMouseLeave={handleMouseLeave3D}
+        className="apple-card apple-3d-card shine-effect group flex flex-col justify-between p-6 relative overflow-hidden bg-white shadow-md transition-all duration-300"
+      >
+        <Link to={`/products/${product._id}`} className="block flex-1">
+          {hasDiscount && (
+            <span className="absolute top-4 left-4 z-10 bg-[#1d1d1f] text-white text-[11px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+              Save ₹{discountAmt}
             </span>
           )}
-        </div>
-        <h2 className="text-lg font-semibold mt-3 truncate">{product.name}</h2>
-        <div className="mt-1">
-          {product.discount ? (
-            <p className="text-sm text-gray-700">
-              ₹<s className="text-red-500">{product.price}</s>{" "}
-              <span className="text-green-600 font-bold">
-                ₹{product.discount}
-              </span>
-            </p>
-          ) : (
-            <p className="text-sm text-black font-medium">₹{product.price}</p>
-          )}
-        </div>
-      </Link>
-      <button
-        onClick={() => addToCart(product._id, product.name)}
-        className="mt-4 w-full bg-[#d4e4e8] hover:bg-black hover:text-white text-black py-2 rounded-lg transition-all duration-500"
-      >
-        🛒 Add to Cart
-      </button>
-    </motion.div>
-  );
 
-  return (
-    <div
-      className="bg-gray-100 min-h-screen"
-      style={{ fontFamily: '"Gidole", sans-serif' }}
-    >
-      <div className="absolute top-0">
-        <Navbar />
-      </div>
-
-      {/* Hero Banner */}
-      <div className="w-full mt-14">
-        <motion.div className="relative w-full min-h-[380px] bg-gradient-to-r from-white via-red-300 to-blue-600 text-black shadow-md flex flex-col md:flex-row items-center justify-between px-4 py-8 gap-6">
-          <div className="w-full md:w-1/2 text-center md:text-left px-4 relative">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold">
-              {banners[bannerIndex].title}
-            </h1>
-            <p className="text-base md:text-lg mt-2">
-              {banners[bannerIndex].subtitle}
-            </p>
-          </div>
-          <div className="w-full md:w-1/2 flex justify-center px-4">
+          <div className="relative h-56 w-full flex items-center justify-center p-4 mb-4 bg-[#fbfbfd] rounded-2xl group-hover:bg-[#f5f5f7] transition-colors preserve-3d">
             <img
-              className={`${bannersImage[bannerIndex].style}  absolute z-10 top-30 max-w-[300px] md:max-w-[400px] h-auto object-contain`}
-              src={bannersImage[bannerIndex].image}
+              src={
+                product.images?.[0]?.url ||
+                product.image?.url ||
+                "https://via.placeholder.com/200"
+              }
+              alt={product.name}
               loading="lazy"
-              alt="Banner"
+              className="max-h-48 max-w-full object-contain transform group-hover:scale-110 transition-transform duration-500 ease-out preserve-3d"
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/200";
+                e.target.onerror = null;
+              }}
             />
           </div>
-        </motion.div>
-      </div>
 
-      {/* Filter Box UI */}
-      <div className="container mx-auto mt-10 px-4">
-        <div className="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 rounded-2xl shadow-lg p-6 flex flex-wrap gap-4 items-center justify-center">
-          {categoryList.map((cat) => (
-            <button
-              key={cat.label}
-              className={`flex items-center gap-2 px-5 py-2 rounded-full font-semibold shadow transition-all duration-300
-                ${selectedCategory === cat.value
-                  ? "bg-blue-600 text-white scale-105"
-                  : "bg-white text-blue-700 hover:bg-blue-100"
-                }`}
-              onClick={() => setSelectedCategory(cat.value)}
-            >
-              {cat.icon && <span className="text-xl">{cat.icon}</span>}
-              {cat.label}
-            </button>
-          ))}
+          <div className="space-y-1">
+            <span className="text-[11px] font-semibold text-[#86868b] uppercase tracking-wider block">
+              {product.category || "Gadget"}
+            </span>
+            <h3 className="text-base font-semibold text-[#1d1d1f] group-hover:text-[#0071e3] transition-colors line-clamp-1">
+              {product.name}
+            </h3>
+          </div>
 
-        </div>
-      </div>
+          <div className="mt-3 flex items-baseline gap-2">
+            {hasDiscount ? (
+              <>
+                <span className="text-lg font-bold text-[#1d1d1f]">
+                  ₹{product.discount.toLocaleString("en-IN")}
+                </span>
+                <span className="text-sm text-[#86868b] line-through">
+                  ₹{product.price.toLocaleString("en-IN")}
+                </span>
+              </>
+            ) : (
+              <span className="text-lg font-bold text-[#1d1d1f]">
+                ₹{product.price.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
+        </Link>
 
-      {/* Search Bar */}
-      <div className="container mx-auto mt-6 px-4">
-        <input
-          type="text"
-          placeholder="🔍 Search for products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 shadow-sm"
+        <button
+          onClick={() => addToCart(product._id, product.name)}
+          className="mt-5 w-full apple-btn-primary py-2.5 flex items-center justify-center gap-2 text-sm font-medium transition-transform active:scale-95 shadow-sm"
+        >
+          <ShoppingBag size={16} />
+          <span>Add to Bag</span>
+        </button>
+      </motion.div>
+    );
+  };
+
+
+  return (
+    <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f] relative">
+      <div className="fixed inset-0 pointer-events-none z-0 opacity-40">
+        <Prism
+          animationType="rotate"
+          timeScale={0.5}
+          height={3.5}
+          baseWidth={5.5}
+          scale={3.6}
+          hueShift={0}
+          colorFrequency={1}
+          noise={0.5}
+          glow={1}
         />
       </div>
+      <Navbar />
 
-      {/* Featured Products */}
-      <main className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold mb-6 text-center">
-          🛍️ Featured Products
-        </h1>
 
-        {/* First 10 products */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+
+
+      {/* Hero Apple Store Showcase */}
+      <section className="pt-24 pb-10 px-4 sm:px-6 max-w-7xl mx-auto">
+        <motion.div
+          key={bannerIndex}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="relative w-full rounded-3xl bg-gradient-to-br from-[#161617] via-[#1d1d1f] to-[#000000] text-white p-8 md:p-14 overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between min-h-[380px]"
+        >
+          {/* Glowing Gradient Backdrop Orb */}
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#0071e3]/30 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 md:w-3/5 text-center md:text-left space-y-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold tracking-wider text-blue-300 uppercase">
+              <Sparkles size={12} />
+              {banners[bannerIndex].tag}
+            </span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+              {banners[bannerIndex].title}
+            </h1>
+            <p className="text-base sm:text-lg text-gray-300 font-normal max-w-xl">
+              {banners[bannerIndex].subtitle}
+            </p>
+            <div className="pt-2 flex flex-wrap gap-4 justify-center md:justify-start items-center">
+              <a
+                href="#products-grid"
+                className="apple-btn-primary text-sm py-3 px-6 shadow-lg inline-flex items-center gap-2"
+              >
+                Explore Collection
+                <ChevronRight size={16} />
+              </a>
+
+              {/* Carousel Slide Indicators */}
+              <div className="flex gap-2 items-center ml-2">
+                {banners.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setBannerIndex(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      bannerIndex === i ? "w-8 bg-blue-500" : "w-2 bg-white/30 hover:bg-white/50"
+                    }`}
+                    aria-label={`Slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-10 md:w-2/5 mt-8 md:mt-0 flex justify-center preserve-3d">
+            <motion.img
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              src={bannersImage[bannerIndex].image}
+              alt="Banner Showcase"
+              className="max-h-72 w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,113,227,0.4)] animate-float-3d"
+            />
+          </div>
+
+        </motion.div>
+      </section>
+
+      {/* Category Pills Bar */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 my-6">
+        <div className="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-none">
+          {categoryList.map((cat) => {
+            const isSelected = selectedCategory === cat.value;
+            return (
+              <button
+                key={cat.label}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                  isSelected
+                    ? "bg-[#1d1d1f] text-white shadow-md scale-105"
+                    : "bg-white text-[#1d1d1f] border border-black/5 hover:bg-black/5"
+                }`}
+              >
+                {cat.icon && <span className="text-base">{cat.icon}</span>}
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Apple Search Bar */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-10">
+        <div className="relative max-w-2xl mx-auto">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search for products, categories, or specs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3.5 bg-white border border-black/10 rounded-2xl shadow-sm text-sm focus:outline-none focus:ring-4 focus:ring-[#0071e3]/20 focus:border-[#0071e3] transition-all"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-400 hover:text-gray-600"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Products Display Section */}
+      <main id="products-grid" className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="flex flex-col md:flex-row items-baseline justify-between mb-8 pb-4 border-b border-black/10">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
+              Featured Products
+            </h2>
+            <p className="text-sm text-[#86868b] mt-1">
+              Hand-picked gadgets engineered for high performance.
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-[#86868b] mt-2 md:mt-0">
+            Showing {filteredProducts.length} items
+          </span>
+        </div>
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {loading ? (
             Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
-                className="h-72 bg-gray-300 rounded-xl animate-pulse"
-              ></div>
+                className="h-80 bg-white rounded-3xl animate-pulse shadow-sm border border-black/5"
+              />
             ))
           ) : filteredProducts.length > 0 ? (
             <>
-              {filteredProducts.slice(0, 10).map(renderProductCard)}
+              {filteredProducts.slice(0, 8).map(renderProductCard)}
 
-              <div className="col-span-full h-100 relative flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-[#27858e] via-red-400   to-[#3a1885] text-white p-6 rounded-2xl overflow-hidden">
-                <div className="md:w-1/2 ">
+              {/* Luxury Apple Banner Card */}
+              <div className="col-span-full my-6 rounded-3xl bg-gradient-to-r from-[#1d1d1f] via-[#2c2c2e] to-[#161617] text-white p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-xl">
+                <div className="md:w-1/2 space-y-3 z-10">
+                  <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">
+                    EXCLUSIVE OFFER
+                  </span>
+                  <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight">
+                    Upgrade to Next-Gen Tech.
+                  </h2>
+                  <p className="text-sm sm:text-base text-gray-300 max-w-md">
+                    Get extra savings on top-rated headphones, monitors, and smartwear today.
+                  </p>
+                  <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                    className="apple-btn-primary inline-flex items-center gap-2 text-sm mt-4"
+                  >
+                    <span>Shop All Gadgets</span>
+                    <ArrowRight size={16} />
+                  </button>
+                </div>
+                <div className="md:w-1/2 mt-6 md:mt-0 flex justify-center z-10">
                   <img
                     src="https://i.ibb.co/fY2pc8c1/LS20250730225719.png"
-                    alt="Shop Now"
+                    alt="Gadget Promo"
                     loading="lazy"
-                    className="w-80 absolute bottom-0 right-4  md:max-w-[400px] object-contain  "
+                    className="max-h-64 object-contain drop-shadow-2xl"
                   />
                 </div>
-
-                <div className="md:w-1/2 absolute left-[3%] top-0 text-center md:text-left mt-6 block md:hidden ">
-                  <h1 className="text-xl md:text-3xl font-extrabold mb-2 text-black">
-                    SHOP FOR MORE GADGETS
-                  </h1>
-                  <p className="text-lg w-60 text-blue-200">
-                    Grab the Latest Gadgets at Jaw-Dropping Prices!
-                  </p>
-                </div>
-                <div className="md:w-1/2 absolute right-[40%] top-30 text-center md:text-left mt-6 hidden md:block">
-                  <h1 className="text-2xl md:text-3xl font-extrabold mb-2">
-                    SHOP FOR MORE GADGETS
-                  </h1>
-                  <p className="text-lg text-green-200">
-                    Limited Time Offer!{" "}
-                    <span className="font-semibold text-white">
-                      Get 30% OFF
-                    </span>{" "}
-                    on your favorite gadgets – grab the deal now!
-                  </p>
-                </div>
-                <div className="absolute bottom-3 left-[20%] md:left-[40%] ">
-                  <Link
-                    to="/"
-                    onClick={() =>
-                      window.scrollTo({ top: 0, behavior: "smooth" })
-                    }
-                    className=" bg-[#2e1a1aed] py-2 text-white text-lg font-bold border-b-blue-500 outline-none rounded-2xl hover:bg-black px-9"
-                  >
-                    Shop Now
-                  </Link>
-                </div>
               </div>
+
+              {filteredProducts.slice(8).map(renderProductCard)}
             </>
           ) : (
-            <div className="flex flex-col justify-center w-full items-center text-gray-600 mt-7 col-span-full">
-              <PackageX size={48} className="text-red-500" />
-              <p className="text-lg font-semibold mt-2">
-                Sorry, this product is not found.
-              </p>
-              <p className="text-sm">It will be available shortly.</p>
+            <div className="col-span-full py-16 text-center bg-white rounded-3xl shadow-sm border border-black/5">
+              <PackageX size={48} className="mx-auto text-gray-400 mb-3" />
+              <h3 className="text-lg font-semibold text-[#1d1d1f]">No matching products found</h3>
+              <p className="text-sm text-[#86868b] mt-1">Try adjusting your search query or selected category filter.</p>
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("");
+                }}
+                className="apple-btn-dark text-xs mt-4 py-2 px-5"
+              >
+                Reset Filters
+              </button>
             </div>
           )}
         </div>
-
-        {/* Remaining products */}
-        {filteredProducts.length > 10 && (
-          <div className="mt-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {filteredProducts.slice(10).map(renderProductCard)}
-          </div>
-        )}
       </main>
 
       <Footer />
@@ -375,3 +485,4 @@ const Home = () => {
 };
 
 export default Home;
+

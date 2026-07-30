@@ -279,13 +279,14 @@ userControllers.getCartItems = async (req, res) => {
       lastname: user.lastname,
       email: user.email,
       contact: user.contact,
-      address: user.address,
+      address: user.address || {},
+      coins: user.coins || 250,
       profilePicture: profilePictureBase64,
     });
 
   } catch (error) {
-    console.error("❌ Error fetching user profile:", error.message);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+    console.error("Error fetching user profile:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -296,43 +297,34 @@ userControllers.updateUserProfile = async (req, res) => {
 
     const { firstname, lastname, contact, email, address } = req.body;
 
-
-
-
-    // ✅ Token fetch karo cookies se
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
       return res.status(401).json({ message: "Unauthorized: No token provided" });
     }
 
-    // ✅ Token verify karke email nikalo
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userEmail = decoded.email; // JWT se email extract kiya
+    const userEmail = decoded.email;
 
-    // ✅ Ab database se user dhoondo using JWT email
     const user = await userModel.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ Update user fields
     if (firstname) user.firstname = firstname;
     if (lastname) user.lastname = lastname;
     if (contact) user.contact = contact;
 
-    let newToken = null; // Store new token if email changes
+    let newToken = null;
 
-    // ✅ Agar email change ho raha hai toh naye email ka check karo
     if (email && email !== user.email) {
       const emailExists = await userModel.findOne({ email });
       if (emailExists) {
         return res.status(400).json({ message: "Email already in use" });
       }
 
-      user.email = email; // Update email
-      newToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "7d" }); // ✅ Generate new token
+      user.email = email;
+      newToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-      // ✅ Save new token in cookies
       res.cookie("token", newToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -341,7 +333,6 @@ userControllers.updateUserProfile = async (req, res) => {
       });
     }
 
-    // ✅ Handle profile picture upload
     if (req.file) {
       user.profilePicture = {
         data: req.file.buffer,
@@ -349,14 +340,19 @@ userControllers.updateUserProfile = async (req, res) => {
       };
     }
 
-    // ✅ Update Address
     if (address) {
-      const parsedAddress = JSON.parse(address);
+      let parsedAddress = {};
+      if (typeof address === "string") {
+        try { parsedAddress = JSON.parse(address); } catch (e) { parsedAddress = {}; }
+      } else if (typeof address === "object" && address !== null) {
+        parsedAddress = address;
+      }
+
       user.address = {
-        street: parsedAddress.street || user.address.street,
-        city: parsedAddress.city || user.address.city,
-        state: parsedAddress.state || user.address.state,
-        country: parsedAddress.country || user.address.country,
+        street: parsedAddress.street ?? user.address?.street ?? "",
+        city: parsedAddress.city ?? user.address?.city ?? "",
+        state: parsedAddress.state ?? user.address?.state ?? "",
+        country: parsedAddress.country ?? user.address?.country ?? "",
       };
     }
 
@@ -409,10 +405,12 @@ userControllers.buynowSuccessful = async (req, res) => {
     // Calculate total price
     const totalPrice = product.price * (quantity || 1);
 
+    const orderModel = require("../models/orderModel");
+
     // Create order object
     const newOrder = {
       productId,
-      quantity: quantity || 1, // Default 1 if not provided
+      quantity: quantity || 1,
       price: totalPrice,
       status: "pending",
       orderDate: new Date(),
@@ -420,11 +418,37 @@ userControllers.buynowSuccessful = async (req, res) => {
 
     // Add order to the user's order list
     user.orders.push(newOrder);
-    await user.save(); // Save the updated user
+
+    // Update coins (Earn 5% coins)
+    const coinsEarned = Math.max(10, Math.round(totalPrice * 0.05));
+    let coinDelta = coinsEarned;
+    if (req.body.redeemCoins && (user.coins || 250) >= 250) {
+      coinDelta -= 250;
+    }
+    user.coins = Math.max(0, (user.coins || 250) + coinDelta);
+
+    await user.save();
+
+    // Create central Order entry for owner dashboard tracking
+    try {
+      await orderModel.create({
+        userId: user._id,
+        productId,
+        amount: totalPrice,
+        paymentStatus: "Success",
+        paymentMethod: req.body.paymentMethod || "COD",
+        transactionId: "COD-" + Date.now(),
+        status: "Confirmed",
+      });
+    } catch (e) {
+      console.log("Central order logging note:", e.message);
+    }
 
     return res.status(201).json({
       message: "Order placed successfully!",
       order: newOrder,
+      userCoins: user.coins,
+      coinsEarned,
     });
 
   } catch (error) {
@@ -432,6 +456,7 @@ userControllers.buynowSuccessful = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 //MyOrders
 const Product = require("../models/productModel"); // Import Product model
@@ -460,7 +485,6 @@ userControllers.MyOrders = async (req, res) => {
     const ordersWithProductDetails = await Promise.all(
       user.orders.map(async (order) => {
         const product = await Product.findById(order.productId);
-        console.log( "Product:", product?.images?.[0]?.url );
 
 
         return {

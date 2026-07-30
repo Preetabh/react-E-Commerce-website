@@ -55,8 +55,17 @@ orderController.placeOrder = async (req, res) => {
       paymentStatus: "Success",
       transactionId,
       status: "Confirmed",
-      paymentMethod: "Online",
+      paymentMethod: req.body.paymentMethod || "Online",
     });
+
+    // 🪙 Update User Coins Balance (Earn 5% + optionally redeem 250 coins)
+    const coinsEarned = Math.max(10, Math.round(amount * 0.05));
+    let coinDelta = coinsEarned;
+    if (req.body.redeemCoins && (user.coins || 250) >= 250) {
+      coinDelta -= 250;
+    }
+    user.coins = Math.max(0, (user.coins || 250) + coinDelta);
+    await user.save();
 
     // 💰 Increase Owner Wallet Balance (demo wallet)
     await OwnerModel.findOneAndUpdate(
@@ -70,12 +79,15 @@ orderController.placeOrder = async (req, res) => {
       message: "Payment Successful & Order Created",
       transactionId,
       order: newOrder,
+      userCoins: user.coins,
+      coinsEarned,
     });
   } catch (error) {
     console.error("Order error:", error);
     return res.status(500).json({ message: "Order Failed", error });
   }
 };
+
 
 orderController.getPaymentInfo = async (req, res) => {
   try {

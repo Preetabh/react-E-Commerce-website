@@ -9,6 +9,7 @@ import Toastify from "toastify-js";
 import "toastify-js/src/toastify.css";
 import "../../App.css";
 import Swal from "sweetalert2";
+import { Package, Clock, CheckCircle, XCircle, ArrowRight } from "lucide-react";
 
 const MyOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -20,30 +21,27 @@ const MyOrders = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const token =localStorage.getItem("token")
+        const token = localStorage.getItem("token");
         if (!token) {
           Toastify({
-            text: ` First Login then So Your Orders ..!! `,
+            text: `Please sign in to view your orders.`,
             duration: 3000,
             gravity: "top",
             position: "right",
-            style: { background: "red", color: "#fff", borderRadius: "8px", fontWeight: "bold", padding: "12px" },
+            style: { background: "#1d1d1f", color: "#fff", borderRadius: "12px", padding: "12px 20px" },
           }).showToast();
-         return navigate('/users/login')
+          return navigate('/users/login');
         }
 
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/users/myorders`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            withCredentials: true,
-          }
-        );
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/users/myorders`, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
         setOrders(response?.data?.orders || []);
 
       } catch (error) {
         if (error.response?.status === 401) {
           localStorage.removeItem("token");
-          toast.error("You need to login first.");
           setTimeout(() => navigate("/users/login"), 1000);
         } else {
           setError(error.response?.data?.message || "Failed to fetch orders");
@@ -56,46 +54,36 @@ const MyOrders = () => {
     fetchOrders();
   }, [navigate]);
 
-  const handleCancelOrder = async (orderId,ordername) => {
+  const handleCancelOrder = async (orderId, ordername) => {
     try {
       const token = localStorage.getItem("token");
       const result = await Swal.fire({
-            title: `Are you Sure Cancel this Order ${ordername}?`,
-            icon: "question",
-            showDenyButton: true,
-            confirmButtonText: "Yes",
-            denyButtonText: "No",
-          });
+        title: `Cancel Order?`,
+        text: `Are you sure you want to cancel ${ordername}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, Cancel Order",
+        cancelButtonText: "Keep Order",
+        confirmButtonColor: "#ff3b30",
+        cancelButtonColor: "#1d1d1f",
+        customClass: {
+          popup: 'rounded-3xl font-sans'
+        }
+      });
 
-          if (!result.isConfirmed) return;
+      if (!result.isConfirmed) return;
       await axios.delete(`${import.meta.env.VITE_BASE_URL}/users/myorders/${orderId}`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
       setOrders(orders.filter(order => order._id !== orderId));
       Toastify({
-        text: `Order ${ordername} cancelled successfully. ☹️`,
+        text: `Order ${ordername} cancelled successfully.`,
         duration: 3000,
         gravity: "top",
         position: "right",
-        style: { background: "green", color: "#fff", borderRadius: "8px", fontWeight: "bold", padding: "12px" },
+        style: { background: "#ff3b30", color: "#fff", borderRadius: "12px" },
       }).showToast();
-
-      Swal.fire({
-  title: "Did you like this order?",
-  showDenyButton: true,
-  confirmButtonText: "👍 Like",
-  denyButtonText: "👎 Unlike",
-  icon: "question",
-}).then((result) => {
-  Toastify({
-        text: `Thank you for your feedback!`,
-        duration: 3000,
-        gravity: "top",
-        position: "right",
-        style: { background: "blue", color: "#fff", borderRadius: "8px", fontWeight: "bold", padding: "12px" },
-      }).showToast();
-});
 
     } catch (error) {
       setError("Failed to cancel order");
@@ -103,101 +91,126 @@ const MyOrders = () => {
   };
 
   return (
-    <div style={{
-      fontFamily: '"Gidole", sans-serif',
-      fontWeight: 400,
-      fontStyle: "normal",
-    }}>
-    <>
-      <Navbar className="absolute" />
-      <div className="p-4 sm:p-6 relative top-18 max-w-6xl mx-auto">
-        <h2 className="text-center text-2xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-md shadow-lg">
-          My Orders
-        </h2>
+    <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f]">
+      <Navbar />
+
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+        <div className="border-b border-black/10 pb-6 mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">
+            Order History
+          </h1>
+          <p className="text-sm text-[#86868b] mt-1">
+            Track and manage your recent device purchases.
+          </p>
+        </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
-            <span onClick={() => setError(null)} className="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer">×</span>
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl mb-6 text-sm flex justify-between items-center">
+            <span>{error}</span>
+            <button onClick={() => setError(null)} className="font-bold">×</button>
           </div>
         )}
 
         {loading ? (
-          <div className="flex justify-center items-center h-40">
+          <div className="flex flex-col items-center justify-center min-h-[40vh]">
             <motion.div
-              className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+              className="w-10 h-10 border-4 border-[#0071e3] border-t-transparent rounded-full"
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            ></motion.div>
+            />
+            <p className="text-sm text-[#86868b] mt-4 font-medium">Fetching order records...</p>
           </div>
         ) : (Array.isArray(orders) && orders.length > 0) ? (
           <div className="grid gap-6 sm:grid-cols-2">
-            {orders.map((order) => (
-              <motion.div
-                key={order._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                layout
-                className="flex flex-col sm:flex-row items-center border border-gray-300 p-4 rounded-lg shadow-md bg-white hover:shadow-xl transition-shadow duration-300 ease-in-out"
-              >
-                <Link to={`/products/${order.productId}`} className="flex items-center flex-grow hover:underline mb-4 sm:mb-0 sm:mr-4">
-                  <img
-                    src={order.image || "https://via.placeholder.com/150"}
-                    alt={order.name}
-                    className="w-full sm:w-28 h-28 object-contain rounded-md shadow-lg transition-transform transform hover:scale-105"
-                  />
-                  <div className="ml-0 sm:ml-4 mt-2 sm:mt-0 text-center sm:text-left">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {order.name.length > 65 ? `${order.name.substring(0, 65)}...` : order.name}
-                    </h3>
-                    <p className="text-gray-600 mb-2 font-bold">₹{order.price}</p>
-                    <div className='flex gap-1.5 justify-center sm:justify-start'>
-                      <span className='font-bold'>Status:</span>
-                      <p
-  className={`text-sm font-semibold px-3 py-1 rounded-full text-center ${
-    order.status === "pending"
-      ? "bg-red-500 text-white"
-      : order.status === "completed"
-      ? "bg-green-500 text-white"
-      : order.status === "cancelled"
-      ? "bg-gray-500 text-white"
-      : "bg-blue-500 text-white"
-  }`}
->
-  {order.status}
-</p>
+            {orders.map((order) => {
+              const isCompleted = order.status === "completed";
+              const isCancelled = order.status === "cancelled";
+              const isPending = order.status === "pending";
 
+              return (
+                <motion.div
+                  key={order._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  layout
+                  className="apple-card p-6 bg-white flex flex-col justify-between space-y-4 hover:shadow-xl transition"
+                >
+                  <Link to={`/products/${order.productId}`} className="flex items-start gap-4 group">
+                    <div className="w-24 h-24 bg-[#fbfbfd] rounded-2xl flex items-center justify-center p-2 shrink-0">
+                      <img
+                        src={order.image || "https://via.placeholder.com/150"}
+                        alt={order.name}
+                        className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
+                      />
                     </div>
-                  </div>
-                </Link>
-                <button
-  onClick={() => handleCancelOrder(order._id,order.name)}
-  disabled={order.status === "completed" || order.status === "cancelled"}
-  title={order.status === "completed" || order.status === "cancelled" ? "Order can't be cancelled" : ""}
-  className={`bg-red-500 w-full min-w-[10vw] sm:w-auto hover:bg-red-700 text-white py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 ${
-    order.status === "completed" || order.status === "cancelled"
-      ? "opacity-50 cursor-not-allowed"
-      : ""
-  }`}
->
-  Cancel Order
-</button>
+                    <div className="flex-1 space-y-1">
+                      <h3 className="text-base font-semibold text-[#1d1d1f] group-hover:text-[#0071e3] transition line-clamp-2">
+                        {order.name}
+                      </h3>
+                      <p className="text-lg font-extrabold text-[#1d1d1f]">
+                        ₹{Number(order.price).toLocaleString("en-IN")}
+                      </p>
 
-              </motion.div>
-            ))}
+                      <div className="pt-1 flex items-center gap-2">
+                        <span className="text-xs font-medium text-[#86868b]">Status:</span>
+                        <span
+                          className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                            isCompleted
+                              ? "bg-green-100 text-green-700"
+                              : isCancelled
+                              ? "bg-gray-100 text-gray-600"
+                              : isPending
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <div className="pt-3 border-t border-black/5 flex justify-end">
+                    <button
+                      onClick={() => handleCancelOrder(order._id, order.name)}
+                      disabled={isCompleted || isCancelled}
+                      className={`text-xs font-semibold py-2 px-4 rounded-full transition ${
+                        isCompleted || isCancelled
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "text-red-600 hover:bg-red-50"
+                      }`}
+                    >
+                      {isCancelled ? "Order Cancelled" : isCompleted ? "Delivered" : "Cancel Order"}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         ) : (
-          <div className="text-center text-gray-500 mt-8">
-            <img src="https://cdn-icons-png.flaticon.com/128/1873/1873154.png" alt="No Orders" className="mx-auto mb-4" />
-            <p>No orders found.</p>
+          <div className="apple-card p-16 text-center max-w-xl mx-auto bg-white my-8 space-y-4">
+            <div className="w-16 h-16 bg-[#f5f5f7] rounded-full flex items-center justify-center mx-auto text-[#86868b]">
+              <Package size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-[#1d1d1f]">No Orders Placed Yet</h2>
+            <p className="text-sm text-[#86868b]">
+              When you purchase devices, your order tracking status will show up here.
+            </p>
+            <Link
+              to="/"
+              className="apple-btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-6 shadow-md"
+            >
+              <span>Explore Store</span>
+              <ArrowRight size={16} />
+            </Link>
           </div>
         )}
-        <Footer />
-      </div>
-    </></div>
+      </main>
+
+      <Footer />
+    </div>
   );
 };
 
 export default MyOrders;
+

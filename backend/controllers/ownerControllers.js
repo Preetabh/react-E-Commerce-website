@@ -188,19 +188,60 @@ ownerControllers.Ownerdashboard = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
+    const orderModel = require("../models/orderModel");
+
     // 🔹 Get all users
-    const users = await userModel.find();
-
-    // 🔹 Get total number of users
-
+    const users = await userModel.find().select("-password");
     const totalUsers = users.length;
 
     // 🔹 Get all products
     const products = await productModel.find();
-    const reverseProducts = products.reverse()
-
-    // 🔹 Get total number of products
+    const reverseProducts = products.reverse();
     const totalProducts = reverseProducts.length;
+
+    // 🔹 Get all DB orders
+    const dbOrders = await orderModel.find().sort({ createdAt: -1 });
+
+    // Combine orderModel orders and all users' embedded orders
+    let userEmbeddedOrders = [];
+    users.forEach((u) => {
+      if (u.orders && u.orders.length > 0) {
+        u.orders.forEach((o) => {
+          userEmbeddedOrders.push({
+            amount: o.price || 0,
+            createdAt: o.orderDate || new Date(),
+          });
+        });
+      }
+    });
+
+    const totalOrders = dbOrders.length + userEmbeddedOrders.length;
+
+    const dbOrdersRevenue = dbOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
+    const embeddedRevenue = userEmbeddedOrders.reduce((sum, o) => sum + (o.amount || 0), 0);
+    const totalRevenue = dbOrdersRevenue + embeddedRevenue;
+
+    const totalCoinsActive = users.reduce((sum, u) => sum + (u.coins || 250), 0);
+
+    // Group orders by day of week for weekly fulfillment
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayCounts = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
+    [...dbOrders, ...userEmbeddedOrders].forEach((o) => {
+      const d = new Date(o.createdAt);
+      const dayName = days[d.getDay()];
+      if (dayCounts[dayName] !== undefined) {
+        dayCounts[dayName] += 1;
+      }
+    });
+
+    const weeklyFulfillment = [
+      { day: "Mon", count: dayCounts.Mon },
+      { day: "Tue", count: dayCounts.Tue },
+      { day: "Wed", count: dayCounts.Wed },
+      { day: "Thu", count: dayCounts.Thu },
+      { day: "Fri", count: dayCounts.Fri },
+      { day: "Sat", count: dayCounts.Sat },
+    ];
 
     res.status(200).json({
       message: "Owner dashboard fetched successfully",
@@ -209,8 +250,14 @@ ownerControllers.Ownerdashboard = async (req, res) => {
       users,
       reverseProducts,
       totalProducts,
+      totalOrders,
+      totalRevenue,
+      totalCoinsActive,
+      weeklyFulfillment,
+      dbOrders,
       token,
     });
+
 
   } catch (error) {
     console.error("Error:", error);
