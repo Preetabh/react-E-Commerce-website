@@ -65,6 +65,10 @@ app.get("/get-cookie", (req, res) => {
 });
 
 // 🔹 Define Routes
+const { googleAuthRedirect, googleAuthCallback } = require("./controllers/userControllers");
+app.get("/auth/google", googleAuthRedirect);
+app.get("/auth/google/callback", googleAuthCallback);
+
 app.use("/products", productRoutes);
 app.use("/owner", ownerRoutes);
 app.use("/users", userRoutes);

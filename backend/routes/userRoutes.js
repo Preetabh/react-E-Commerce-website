@@ -1,5 +1,5 @@
 const express = require("express");
-const { registerUser, loginUser,SendOtp, logoutUser, getUserProfile,ResetPassword ,buynowSuccessful,MyOrders,cancelOrder,updateUserProfile,Addtocart,getCartItems,} = require("../controllers/userControllers");
+const { registerUser, loginUser, SendOtp, logoutUser, getUserProfile, ResetPassword, buynowSuccessful, MyOrders, cancelOrder, updateUserProfile, Addtocart, getCartItems, googleAuthRedirect, googleAuthCallback, googleOneTapLogin } = require("../controllers/userControllers");
 const upload = require("../config/multer-config");
 const authMiddleware = require("../middlewares/AuthMiddleware");
 const jwt = require("jsonwebtoken");
@@ -10,6 +10,9 @@ const router = express.Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.get("/auth/google", googleAuthRedirect);
+router.get("/auth/google/callback", googleAuthCallback);
+router.post("/google-login", googleOneTapLogin);
 router.post("/addtocart", Addtocart);
 router.post("/buynowSuccessful/:id", buynowSuccessful);
 router.get("/myorders", MyOrders);

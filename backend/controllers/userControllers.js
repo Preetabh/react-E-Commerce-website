@@ -637,8 +637,150 @@ userControllers.ResetPassword = async (req, res) => {
   }
 };
 
+// 📌 Google Auth Redirect
+userControllers.googleAuthRedirect = (req, res) => {
+  const { OAuth2Client } = require("google-auth-library");
+  const client = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI || "http://localhost:4000/auth/google/callback"
+  );
 
+  const authUrl = client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  });
 
+  return res.redirect(authUrl);
+};
 
+// 📌 Google Auth Callback
+userControllers.googleAuthCallback = async (req, res) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      return res.status(400).send("Authorization code missing from Google redirect.");
+    }
+
+    const { OAuth2Client } = require("google-auth-library");
+    const client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI || "http://localhost:4000/auth/google/callback"
+    );
+
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+
+    const userinfoResp = await client.request({
+      url: "https://www.googleapis.com/oauth2/v3/userinfo"
+    });
+
+    const { sub, email, given_name, family_name, picture } = userinfoResp.data;
+
+    if (!email) {
+      return res.status(400).send("Unable to retrieve email from Google account.");
+    }
+
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      user = new userModel({
+        firstname: given_name || "Google",
+        lastname: family_name || "User",
+        email,
+        googleId: sub,
+        googleProfilePic: picture,
+        contact: "0000000000"
+      });
+      await user.save();
+    } else {
+      if (!user.googleId) {
+        user.googleId = sub;
+      }
+      if (picture && !user.googleProfilePic) {
+        user.googleProfilePic = picture;
+      }
+      await user.save();
+    }
+
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    return res.redirect(`${frontendUrl}/#/auth/success?token=${encodeURIComponent(token)}`);
+  } catch (error) {
+    console.error("Google Auth Callback Error:", error);
+    return res.status(500).send("Authentication failed: " + error.message);
+  }
+};
+
+// 📌 Google One Tap / ID Token Login
+userControllers.googleOneTapLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const { OAuth2Client } = require("google-auth-library");
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { sub, email, given_name, family_name, picture } = payload;
+
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      user = new userModel({
+        firstname: given_name || "Google",
+        lastname: family_name || "User",
+        email,
+        googleId: sub,
+        googleProfilePic: picture,
+        contact: "0000000000"
+      });
+      await user.save();
+    } else {
+      if (!user.googleId) {
+        user.googleId = sub;
+      }
+      if (picture && !user.googleProfilePic) {
+        user.googleProfilePic = picture;
+      }
+      await user.save();
+    }
+
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      user: { firstname: user.firstname, lastname: user.lastname, email: user.email, token },
+      token
+    });
+  } catch (error) {
+    console.error("Google OneTap Error:", error.message);
+    return res.status(500).json({ message: "Google authentication failed", error: error.message });
+  }
+};
 
 module.exports = userControllers;
+

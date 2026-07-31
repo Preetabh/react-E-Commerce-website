@@ -16,6 +16,7 @@ const MyOrders = lazy(() => import("./pages/UserFolder/myOrders.jsx"));
 const ProductsDetails = lazy(() => import("./pages/UserFolder/ProductsDetails.jsx"));
 const ForgetPassword = lazy(() => import("./pages/UserFolder/ForgetPassword.jsx"));
 const AiCenter = lazy(() => import("./pages/UserFolder/AiCenter.jsx"));
+const GoogleCallback = lazy(() => import("./pages/UserFolder/GoogleCallback.jsx"));
 const Logout = lazy(() => import("./Logout.jsx"));
 
 /* =======================
@@ -84,6 +85,7 @@ const App = () => {
           <Route path="/users/order" element={<MyOrders />} />
           <Route path="/users/helpcenter" element={<AiCenter />} />
           <Route path="/users/forgetPassword" element={<ForgetPassword />} />
+          <Route path="/auth/success" element={<GoogleCallback />} />
           <Route path="/users/logout" element={<Logout />} />
 
           {/* Owner Routes */}

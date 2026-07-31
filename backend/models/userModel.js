@@ -29,7 +29,13 @@ const userSchema = new mongoose.Schema({
     }],
     password: {
         type: String,
-        required: true,
+        required: false,
+    },
+    googleId: {
+        type: String,
+    },
+    googleProfilePic: {
+        type: String,
     },
     contact: {
         type: String,
