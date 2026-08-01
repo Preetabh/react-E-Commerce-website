@@ -58,13 +58,16 @@ orderController.placeOrder = async (req, res) => {
       paymentMethod: req.body.paymentMethod || "Online",
     });
 
-    // 🪙 Update User Coins Balance (Earn 5% + optionally redeem 250 coins)
-    const coinsEarned = Math.max(10, Math.round(amount * 0.05));
-    let coinDelta = coinsEarned;
-    if (req.body.redeemCoins && (user.coins || 250) >= 250) {
-      coinDelta -= 250;
+    // 🪙 Update User Coins Balance (Earn 5% cashback + optionally redeem ALL coins)
+    const userCoinsAvailable = user.coins ?? 250;
+    let coinsRedeemed = 0;
+    if (req.body.redeemCoins) {
+      coinsRedeemed = req.body.redeemedAmount
+        ? Math.min(userCoinsAvailable, Number(req.body.redeemedAmount))
+        : Math.min(userCoinsAvailable, amount);
     }
-    user.coins = Math.max(0, (user.coins || 250) + coinDelta);
+    const coinsEarned = Math.max(10, Math.round(amount * 0.05));
+    user.coins = Math.max(0, userCoinsAvailable - coinsRedeemed + coinsEarned);
     await user.save();
 
     // 💰 Increase Owner Wallet Balance (demo wallet)

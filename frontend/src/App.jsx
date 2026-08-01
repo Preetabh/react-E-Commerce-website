@@ -59,10 +59,17 @@ const PageLoader = () => (
 
 import ScrollToTop from "./components/ScrollToTop.jsx";
 
+import { useEffect } from "react";
+
 /* =======================
    App Component
 ======================= */
 const App = () => {
+  useEffect(() => {
+    console.log("🚀 [Shop Mart App Initialized]");
+    console.log("📍 [Config Debug] VITE_BASE_URL:", import.meta.env.VITE_BASE_URL || "http://localhost:4000 (Default fallback)");
+  }, []);
+
   return (
     <Router>
       <ScrollToTop />

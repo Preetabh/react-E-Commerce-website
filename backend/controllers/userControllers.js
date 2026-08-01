@@ -419,13 +419,16 @@ userControllers.buynowSuccessful = async (req, res) => {
     // Add order to the user's order list
     user.orders.push(newOrder);
 
-    // Update coins (Earn 5% coins)
-    const coinsEarned = Math.max(10, Math.round(totalPrice * 0.05));
-    let coinDelta = coinsEarned;
-    if (req.body.redeemCoins && (user.coins || 250) >= 250) {
-      coinDelta -= 250;
+    // Update coins (Earn 5% cashback + optionally redeem ALL coins)
+    const userCoinsAvailable = user.coins ?? 250;
+    let coinsRedeemed = 0;
+    if (req.body.redeemCoins) {
+      coinsRedeemed = req.body.redeemedAmount
+        ? Math.min(userCoinsAvailable, Number(req.body.redeemedAmount))
+        : Math.min(userCoinsAvailable, totalPrice);
     }
-    user.coins = Math.max(0, (user.coins || 250) + coinDelta);
+    const coinsEarned = Math.max(10, Math.round(totalPrice * 0.05));
+    user.coins = Math.max(0, userCoinsAvailable - coinsRedeemed + coinsEarned);
 
     await user.save();
 

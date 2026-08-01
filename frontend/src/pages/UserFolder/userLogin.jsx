@@ -54,12 +54,20 @@ const UserLogin = () => {
 
   const handleGoogleLogin = () => {
     const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
-    window.location.href = `${baseUrl}/auth/google`;
+    const targetUrl = `${baseUrl}/auth/google`;
+    console.log("🔍 [Frontend Debug] Google Login Button Clicked!");
+    console.log("📍 [Frontend Debug] VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
+    console.log("🌐 [Frontend Debug] Redirecting to:", targetUrl);
+    window.location.href = targetUrl;
   };
 
   const handleGithubLogin = () => {
     const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:4000";
-    window.location.href = `${baseUrl}/api/auth/github`;
+    const targetUrl = `${baseUrl}/api/auth/github`;
+    console.log("🔍 [Frontend Debug] GitHub Login Button Clicked!");
+    console.log("📍 [Frontend Debug] VITE_BASE_URL:", import.meta.env.VITE_BASE_URL);
+    console.log("🌐 [Frontend Debug] Redirecting to:", targetUrl);
+    window.location.href = targetUrl;
   };
 
   return (

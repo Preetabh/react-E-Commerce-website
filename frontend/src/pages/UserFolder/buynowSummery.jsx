@@ -127,10 +127,14 @@ const BuyNowSummary = () => {
 
         setTimeout(async () => {
           try {
-            const finalAmount = (product.discount || product.price) - (useCoins ? 250 : 0);
+            const userCoins = user?.coins ?? 250;
+            const rawPrice = product.discount || product.price;
+            const coinDiscount = useCoins ? Math.min(userCoins, rawPrice) : 0;
+            const finalAmount = Math.max(0, rawPrice - coinDiscount);
+
             await axios.post(
               `${import.meta.env.VITE_BASE_URL}/users/buynowSuccessful/${id}`,
-              { redeemCoins: useCoins, paymentMethod: "COD", amount: finalAmount },
+              { redeemCoins: useCoins, redeemedAmount: coinDiscount, paymentMethod: "COD", amount: finalAmount },
               {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
                 withCredentials: true,
@@ -200,13 +204,18 @@ const BuyNowSummary = () => {
     }
 
     try {
-      const finalAmount = (product.discount || product.price) - (useCoins ? 250 : 0);
+      const userCoins = user?.coins ?? 250;
+      const rawPrice = product.discount || product.price;
+      const coinDiscount = useCoins ? Math.min(userCoins, rawPrice) : 0;
+      const finalAmount = Math.max(0, rawPrice - coinDiscount);
+
       await axios.post(
         `${import.meta.env.VITE_BASE_URL}/api/orders/placeorder`,
         {
           productId: id,
           amount: finalAmount,
           redeemCoins: useCoins,
+          redeemedAmount: coinDiscount,
           paymentMethod: "Online",
         },
         {
@@ -235,6 +244,11 @@ const BuyNowSummary = () => {
       navigate(`/users/orderSuccess/${id}`);
     }, 2000);
   };
+
+  const userCoins = user?.coins ?? 250;
+  const rawPrice = product ? (product.discount || product.price) : 0;
+  const coinDiscount = useCoins ? Math.min(userCoins, rawPrice) : 0;
+  const displayFinalPrice = Math.max(0, rawPrice - coinDiscount);
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f]">
@@ -281,7 +295,12 @@ const BuyNowSummary = () => {
                     {product.name}
                   </h2>
                   <div className="text-2xl font-extrabold text-[#0071e3]">
-                    ₹{((product.discount || product.price) - (useCoins ? 250 : 0)).toLocaleString("en-IN")}
+                    ₹{displayFinalPrice.toLocaleString("en-IN")}
+                    {coinDiscount > 0 && (
+                      <span className="text-xs text-amber-600 font-bold ml-2">
+                        (Saved ₹{coinDiscount.toLocaleString("en-IN")} using Coins!)
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-[#86868b]">
                     Delivered with Free Express Courier Packaging
@@ -297,7 +316,7 @@ const BuyNowSummary = () => {
                         className="w-4 h-4 accent-amber-500 rounded"
                       />
                       <span className="flex items-center gap-1">
-                        🪙 <strong>Redeem 250 Shop Mart Coins</strong> for instant <strong>₹250 Off</strong>
+                        🪙 <strong>Redeem ALL {userCoins} Shop Mart Coins</strong> for instant <strong>₹{Math.min(userCoins, rawPrice)} Off</strong>
                       </span>
                     </label>
                   </div>

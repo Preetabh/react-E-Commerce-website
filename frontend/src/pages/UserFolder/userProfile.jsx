@@ -115,6 +115,48 @@ const Profile = () => {
                 <span>My Order History</span>
               </button>
             </div>
+
+            {/* 🪙 Shop Mart Loyalty Rewards & Coins Center */}
+            <div className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-amber-500/10 border border-amber-500/20 rounded-3xl p-6 sm:p-8 max-w-2xl mx-auto space-y-5 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-amber-500/20 pb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-400 text-amber-950 flex items-center justify-center font-black text-xl shadow-sm animate-coin">
+                    🪙
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black tracking-widest text-amber-700 uppercase">VIP Loyalty Rewards</span>
+                    <h3 className="text-2xl font-black text-slate-900 leading-tight">
+                      {user?.coins ?? 250} <span className="text-sm font-bold text-slate-600">Shop Mart Coins</span>
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="bg-amber-400 text-amber-950 px-4 py-2 rounded-2xl font-extrabold text-xs shadow-xs text-center">
+                  Redeem Value: ₹{user?.coins ?? 250} Off
+                </div>
+              </div>
+
+              {/* Coin Offers & Perks Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="bg-white p-3.5 rounded-2xl border border-amber-500/20 text-center space-y-1">
+                  <span className="text-base block">⚡</span>
+                  <div className="text-xs font-bold text-slate-900">100% Coin Redeem</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Use ALL coins on any order at checkout</div>
+                </div>
+
+                <div className="bg-white p-3.5 rounded-2xl border border-amber-500/20 text-center space-y-1">
+                  <span className="text-base block">🎁</span>
+                  <div className="text-xs font-bold text-slate-900">5% Order Cashback</div>
+                  <div className="text-[10px] text-slate-500 font-medium">Earn 5% back in coins on every purchase</div>
+                </div>
+
+                <div className="bg-white p-3.5 rounded-2xl border border-amber-500/20 text-center space-y-1">
+                  <span className="text-base block">🚀</span>
+                  <div className="text-xs font-bold text-slate-900">Zero Minimum</div>
+                  <div className="text-[10px] text-slate-500 font-medium">No minimum cart amount required</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
