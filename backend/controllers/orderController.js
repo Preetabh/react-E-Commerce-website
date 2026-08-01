@@ -58,7 +58,7 @@ orderController.placeOrder = async (req, res) => {
       paymentMethod: req.body.paymentMethod || "Online",
     });
 
-    // 🪙 Update User Coins Balance (Earn 5% cashback + optionally redeem ALL coins)
+    // 🪙 Update User Coins Balance (Earn 1% cashback capped at max 150 coins + optionally redeem ALL coins)
     const userCoinsAvailable = user.coins ?? 250;
     let coinsRedeemed = 0;
     if (req.body.redeemCoins) {
@@ -66,7 +66,7 @@ orderController.placeOrder = async (req, res) => {
         ? Math.min(userCoinsAvailable, Number(req.body.redeemedAmount))
         : Math.min(userCoinsAvailable, amount);
     }
-    const coinsEarned = Math.max(10, Math.round(amount * 0.05));
+    const coinsEarned = Math.min(150, Math.max(10, Math.round(amount * 0.01)));
     user.coins = Math.max(0, userCoinsAvailable - coinsRedeemed + coinsEarned);
     await user.save();
 

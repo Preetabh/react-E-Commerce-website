@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { CheckCircle2, ArrowRight, ShoppingBag, Package } from "lucide-react";
+import { CheckCircle2, ArrowRight, Package } from "lucide-react";
 import "../../App.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -13,12 +13,8 @@ const OrderSuccessPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [countdown, setCountdown] = useState(10);
-  const hasMounted = useRef(false);
 
   useEffect(() => {
-    if (hasMounted.current) return;
-    hasMounted.current = true;
-
     const fetchOrderDetails = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/products/${id}`);
@@ -28,27 +24,7 @@ const OrderSuccessPage = () => {
       }
     };
 
-    const placeOrder = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.post(
-          `${import.meta.env.VITE_BASE_URL}/users/buynowSuccessful/${id}`,
-          {},
-          {
-            headers: { Authorization: `Bearer ${token}` },
-            withCredentials: true,
-          }
-        );
-        toast.success("Order confirmed successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } catch (error) {
-        console.error("Order Error:", error.message);
-      }
-    };
-
-    fetchOrderDetails().then(() => placeOrder());
+    fetchOrderDetails();
 
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -63,6 +39,10 @@ const OrderSuccessPage = () => {
 
     return () => clearInterval(interval);
   }, [id, navigate]);
+
+  const earnedCoins = product
+    ? Math.min(150, Math.max(10, Math.round((product.discount || product.price) * 0.01)))
+    : 150;
 
   return (
     <div className="bg-[#f5f5f7] min-h-screen text-[#1d1d1f]">
@@ -89,10 +69,9 @@ const OrderSuccessPage = () => {
             {/* Reward Coins Banner */}
             <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-amber-900 animate-bounce mt-2">
               <span className="text-base animate-coin">🪙</span>
-              <span>Congratulations! You earned +150 Shop Mart Reward Coins on this order!</span>
+              <span>Congratulations! You earned +{earnedCoins} Shop Mart Reward Coins on this order!</span>
             </div>
           </div>
-
 
           {product ? (
             <div className="bg-[#f5f5f7] p-6 rounded-2xl border border-black/5 text-left flex items-center gap-4 my-6">
@@ -142,4 +121,3 @@ const OrderSuccessPage = () => {
 };
 
 export default OrderSuccessPage;
-
