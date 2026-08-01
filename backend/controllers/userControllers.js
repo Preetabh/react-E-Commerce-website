@@ -639,11 +639,16 @@ userControllers.ResetPassword = async (req, res) => {
 
 // 📌 Google Auth Redirect
 userControllers.googleAuthRedirect = (req, res) => {
+  const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+  const host = req.get("host");
+  const defaultCallback = `${protocol}://${host}/auth/google/callback`;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || defaultCallback;
+
   const { OAuth2Client } = require("google-auth-library");
   const client = new OAuth2Client(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI || "http://localhost:4000/auth/google/callback"
+    redirectUri
   );
 
   const authUrl = client.generateAuthUrl({
@@ -665,11 +670,16 @@ userControllers.googleAuthCallback = async (req, res) => {
       return res.status(400).send("Authorization code missing from Google redirect.");
     }
 
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol;
+    const host = req.get("host");
+    const defaultCallback = `${protocol}://${host}/auth/google/callback`;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || defaultCallback;
+
     const { OAuth2Client } = require("google-auth-library");
     const client = new OAuth2Client(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI || "http://localhost:4000/auth/google/callback"
+      redirectUri
     );
 
     const { tokens } = await client.getToken(code);
@@ -711,11 +721,12 @@ userControllers.googleAuthCallback = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL || `${protocol}://${host}`;
     return res.redirect(`${frontendUrl}/#/auth/success?token=${encodeURIComponent(token)}`);
   } catch (error) {
     console.error("Google Auth Callback Error:", error);
