@@ -7,7 +7,6 @@ const cookieParser = require("cookie-parser");
 const connectdb = require("./db/db");
 const path = require("path");
 
-
 // Import Routes
 const userRoutes = require("./routes/userRoutes");
 const homeRoutes = require("./routes/homeRoutes");
@@ -16,8 +15,6 @@ const ownerRoutes = require("./routes/ownerRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const orderRoutes = require("./routes/orderRoute");
 const aiRoutes = require("./routes/airoute");
-// Import Middleware
-const authMiddleware = require("./middlewares/AuthMiddleware"); // Ensure token validation
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -30,9 +27,9 @@ app.use(cookieParser());
 // 🔹 CORS Configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://biggest-shop-mart.onrender.com"],
+    origin: ["http://localhost:5173", "https://biggest-shop-mart.onrender.com"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -50,25 +47,24 @@ app.get("/", (req, res) => {
   res.send("✅ Server is running!");
 });
 
-// 🔹 Set Cookie Route (For Testing)
-app.get("/set-cookie", (req, res) => {
-  res.cookie("token", process.env.JWT_SECRET, {
-    httpOnly: true,
-  });
-  res.json({ message: "Cookie has been set!" });
-});
+// 🔹 OAuth Routes (Google & GitHub)
+const {
+  googleAuthRedirect,
+  googleAuthCallback,
+  githubAuthRedirect,
+  githubAuthCallback,
+} = require("./controllers/userControllers");
 
-// 🔹 Get Cookie Route
-app.get("/get-cookie", (req, res) => {
-  console.log("Cookies received from client:", req.cookies);
-  res.json({ cookies: req.cookies });
-});
-
-// 🔹 Define Routes
-const { googleAuthRedirect, googleAuthCallback } = require("./controllers/userControllers");
 app.get("/auth/google", googleAuthRedirect);
 app.get("/auth/google/callback", googleAuthCallback);
 
+// GitHub OAuth Endpoints
+app.get("/auth/github", githubAuthRedirect);
+app.get("/auth/github/callback", githubAuthCallback);
+app.get("/api/auth/github", githubAuthRedirect);
+app.get("/api/auth/github/callback", githubAuthCallback);
+
+// 🔹 Define Module Routes
 app.use("/products", productRoutes);
 app.use("/owner", ownerRoutes);
 app.use("/users", userRoutes);
@@ -76,7 +72,6 @@ app.use("/home", homeRoutes);
 app.use("/payment", paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/ai-help", aiRoutes);
-
 
 // 🔹 Error Handling Middleware
 app.use((err, req, res, next) => {

@@ -111,41 +111,41 @@ const UserProfileEdit = () => {
   };
 
   return (
-    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+    <div className="bg-[#f8fafc] text-slate-800 min-h-screen flex flex-col justify-between font-sans">
       <div>
         <OwnerNavbar />
 
         <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-24 pb-16">
-          <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-200">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-3xl font-black tracking-tight text-slate-900">
                 Edit Administrator Profile
               </h1>
-              <p className="text-xs text-gray-400 mt-1">
-                Update account info and profile picture.
+              <p className="text-xs text-slate-500 mt-1 font-medium">
+                Update account details and admin profile photo.
               </p>
             </div>
             <button
               onClick={() => navigate("/owner/profile")}
-              className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition"
+              className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs"
             >
               <ArrowLeft size={16} /> Back
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="apple-card-dark p-8 sm:p-10 bg-white/5 border border-white/10 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/80 space-y-6 shadow-sm">
             <div className="flex flex-col items-center">
               <label htmlFor="profilePicture" className="relative cursor-pointer group">
                 <img
                   src={previewImage || "https://img.icons8.com/ios7/1200/landlord.jpg"}
                   alt="Profile Preview"
-                  className="w-28 h-28 rounded-full border-2 border-white/10 shadow-md object-cover group-hover:opacity-80 transition"
+                  className="w-28 h-28 rounded-full border-4 border-slate-100 shadow-md object-cover group-hover:opacity-80 transition"
                 />
-                <div className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full shadow-md">
+                <div className="absolute bottom-0 right-0 bg-slate-900 text-white p-2 rounded-full shadow-md">
                   <Camera size={16} />
                 </div>
               </label>
-              <span className="text-xs text-gray-400 mt-2 font-medium">Click photo to update avatar</span>
+              <span className="text-xs text-slate-500 mt-2 font-semibold">Click photo to update avatar</span>
               <input
                 type="file"
                 id="profilePicture"
@@ -158,49 +158,49 @@ const UserProfileEdit = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">First Name</label>
+                <label className="block text-slate-700 font-bold mb-1.5">First Name</label>
                 <input
                   type="text"
                   name="firstname"
                   value={userData.firstname}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">Last Name</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Last Name</label>
                 <input
                   type="text"
                   name="lastname"
                   value={userData.lastname}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">Admin Email</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Admin Email</label>
                 <input
                   type="email"
                   name="email"
                   value={userData.email}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">Contact Phone</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Contact Phone</label>
                 <input
                   type="text"
                   name="contact"
                   value={userData.contact}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                   required
                 />
               </div>
@@ -210,14 +210,14 @@ const UserProfileEdit = () => {
               <button
                 type="button"
                 onClick={() => navigate("/owner/profile")}
-                className="py-3 px-6 rounded-full text-xs font-semibold bg-white/10 text-gray-300 hover:bg-white/20 transition flex-1"
+                className="py-3 px-6 rounded-2xl text-xs font-extrabold bg-slate-100 text-slate-700 hover:bg-slate-200 transition flex-1"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="apple-btn-primary flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                className="bg-slate-900 hover:bg-slate-800 text-white flex-1 py-3 text-xs font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 disabled:opacity-50"
               >
                 <Check size={16} />
                 <span>{isLoading ? "Saving..." : "Save Admin Profile"}</span>
@@ -233,4 +233,3 @@ const UserProfileEdit = () => {
 };
 
 export default UserProfileEdit;
-

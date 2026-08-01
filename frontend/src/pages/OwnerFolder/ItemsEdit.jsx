@@ -86,13 +86,13 @@ const ItemsEdit = () => {
         text: `Update details for "${formData.name}"?`,
         icon: "question",
         showCancelButton: true,
-        confirmButtonColor: "#0071e3",
-        cancelButtonColor: "#1d1d1f",
+        confirmButtonColor: "#0f172a",
+        cancelButtonColor: "#64748b",
         confirmButtonText: "Yes, Update",
         cancelButtonText: "Cancel",
         customClass: {
-          popup: 'rounded-3xl font-sans bg-[#1d1d1f] text-white',
-        }
+          popup: "rounded-3xl font-sans bg-white text-slate-900 border border-slate-200 shadow-2xl",
+        },
       });
 
       if (!result.isConfirmed) return;
@@ -122,13 +122,13 @@ const ItemsEdit = () => {
         text: `Are you sure you want to permanently remove "${formData.name}" from catalog?`,
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#ff3b30",
-        cancelButtonColor: "#1d1d1f",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#64748b",
         confirmButtonText: "Yes, Delete",
         cancelButtonText: "Keep Product",
         customClass: {
-          popup: 'rounded-3xl font-sans bg-[#1d1d1f] text-white',
-        }
+          popup: "rounded-3xl font-sans bg-white text-slate-900 border border-slate-200 shadow-2xl",
+        },
       });
 
       if (!result.isConfirmed) return;
@@ -150,36 +150,36 @@ const ItemsEdit = () => {
   };
 
   return (
-    <div className="bg-[#0f0f11] text-[#f5f5f7] min-h-screen flex flex-col justify-between font-sans">
+    <div className="bg-[#f8fafc] text-slate-800 min-h-screen flex flex-col justify-between font-sans">
       <div>
         <OwnerNavbar />
 
         <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-24 pb-16">
-          <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-200">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">
-                Edit Product Catalog Listing
+              <h1 className="text-3xl font-black tracking-tight text-slate-900">
+                Edit Product Listing
               </h1>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1 font-medium">
                 Modify pricing, description, specifications, and model details.
               </p>
             </div>
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-white transition"
+              className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-xs"
             >
               <ArrowLeft size={16} /> Back
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="apple-card-dark p-8 sm:p-10 bg-white/5 border border-white/10 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/80 space-y-6 shadow-sm">
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-xs">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-semibold">
                 {error}
               </div>
             )}
             {success && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-2xl text-xs flex items-center gap-2">
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-2xl text-xs font-semibold flex items-center gap-2">
                 <Check size={16} />
                 <span>{success}</span>
               </div>
@@ -187,64 +187,64 @@ const ItemsEdit = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="sm:col-span-2">
-                <label className="block text-gray-400 font-semibold mb-1">Product Title</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Product Title</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">Regular Price (₹)</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Regular Price (₹)</label>
                 <input
                   type="number"
                   name="price"
                   value={formData.price}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 font-semibold mb-1">Discounted Price (₹)</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Discounted Price (₹)</label>
                 <input
                   type="number"
                   name="discount"
                   value={formData.discount}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-gray-400 font-semibold mb-1">Product Details</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Product Details</label>
                 <textarea
                   name="details"
                   value={formData.details}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white h-24"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium h-24 focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-gray-400 font-semibold mb-1">Technical Specifications</label>
+                <label className="block text-slate-700 font-bold mb-1.5">Technical Specifications</label>
                 <textarea
                   name="information"
                   value={formData.information}
                   onChange={handleChange}
-                  className="apple-input bg-white/5 border-white/10 text-white h-24"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 font-medium h-24 focus:bg-white focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all text-xs"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={handleRemoveItem}
-                className="py-3 px-6 rounded-full text-xs font-semibold bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2 border border-red-500/20"
+                className="py-3 px-6 rounded-2xl text-xs font-extrabold bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white transition flex items-center justify-center gap-2"
               >
                 <Trash2 size={16} />
                 <span>Delete Product</span>
@@ -253,7 +253,7 @@ const ItemsEdit = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="apple-btn-primary flex-1 py-3 text-xs font-semibold flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+                className="bg-slate-900 hover:bg-slate-800 text-white flex-1 py-3 text-xs font-extrabold rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 disabled:opacity-50"
               >
                 <Save size={16} />
                 <span>{loading ? "Saving Changes..." : "Save Product Changes"}</span>
@@ -269,4 +269,3 @@ const ItemsEdit = () => {
 };
 
 export default ItemsEdit;
-

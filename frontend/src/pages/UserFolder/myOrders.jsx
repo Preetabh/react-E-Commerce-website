@@ -122,7 +122,9 @@ const MyOrders = () => {
           </div>
         ) : (Array.isArray(orders) && orders.length > 0) ? (
           <div className="grid gap-6 sm:grid-cols-2">
-            {orders.map((order) => {
+            {[...orders]
+              .sort((a, b) => new Date(b.orderDate || b.createdAt || 0) - new Date(a.orderDate || a.createdAt || 0))
+              .map((order) => {
               const isCompleted = order.status === "completed";
               const isCancelled = order.status === "cancelled";
               const isPending = order.status === "pending";

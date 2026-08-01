@@ -782,5 +782,109 @@ userControllers.googleOneTapLogin = async (req, res) => {
   }
 };
 
+// 📌 GitHub Auth Redirect
+userControllers.githubAuthRedirect = (req, res) => {
+  const clientId = process.env.GITHUB_CLIENT_ID || "Ov23liiEbq9H0DPzGYju";
+  const redirectUri = process.env.GITHUB_CALLBACK_URL || "http://localhost:4000/api/auth/github/callback";
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=user:email`;
+  return res.redirect(githubAuthUrl);
+};
+
+// 📌 GitHub Auth Callback
+userControllers.githubAuthCallback = async (req, res) => {
+  try {
+    const axios = require("axios");
+    const { code } = req.query;
+    if (!code) {
+      return res.status(400).send("Authorization code missing from GitHub redirect.");
+    }
+
+    const clientId = process.env.GITHUB_CLIENT_ID || "Ov23liiEbq9H0DPzGYju";
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET || "11ad3c40eb3151ce08702955e2ea9c71887010b7";
+
+    // 1. Exchange authorization code for GitHub access token
+    const tokenResponse = await axios.post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+      },
+      {
+        headers: { Accept: "application/json" },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+    if (!accessToken) {
+      console.error("❌ GitHub OAuth Token Error response:", tokenResponse.data);
+      return res.status(400).send("Failed to obtain access token from GitHub.");
+    }
+
+    // 2. Fetch GitHub user profile
+    const userProfileResp = await axios.get("https://api.github.com/user", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+
+    const ghUser = userProfileResp.data;
+
+    // 3. Fetch GitHub primary email
+    let email = ghUser.email;
+    if (!email) {
+      const emailsResp = await axios.get("https://api.github.com/user/emails", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (Array.isArray(emailsResp.data)) {
+        const primaryEmailObj = emailsResp.data.find((e) => e.primary && e.verified) || emailsResp.data[0];
+        email = primaryEmailObj?.email;
+      }
+    }
+
+    if (!email) {
+      email = `${ghUser.login}@github.com`;
+    }
+
+    const nameParts = (ghUser.name || ghUser.login || "GitHub User").trim().split(" ");
+    const firstname = nameParts[0] || "GitHub";
+    const lastname = nameParts.slice(1).join(" ") || "Member";
+
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      user = new userModel({
+        firstname,
+        lastname,
+        email,
+        githubId: String(ghUser.id),
+        googleProfilePic: ghUser.avatar_url,
+        contact: "0000000000",
+      });
+      await user.save();
+    } else {
+      if (!user.githubId) {
+        user.githubId = String(ghUser.id);
+      }
+      if (ghUser.avatar_url && !user.googleProfilePic) {
+        user.googleProfilePic = ghUser.avatar_url;
+      }
+      await user.save();
+    }
+
+    const token = jwt.sign({ email: user.email }, process.env.JWT_SECRET);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    return res.redirect(`${frontendUrl}/#/auth/success?token=${encodeURIComponent(token)}`);
+  } catch (error) {
+    console.error("❌ GitHub Auth Callback Error:", error.message);
+    res.status(500).send("GitHub authentication failed: " + error.message);
+  }
+};
+
 module.exports = userControllers;
 

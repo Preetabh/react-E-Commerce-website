@@ -13,12 +13,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-
     otp: {
         type: String
     },
-     otpExpiry: { type: Date },
-
+    otpExpiry: { type: Date },
     cart: [{ type: mongoose.Schema.Types.ObjectId, ref: "product" }],
     orders: [{
         productId: { type: mongoose.Schema.Types.ObjectId, ref: "product" },
@@ -37,12 +35,15 @@ const userSchema = new mongoose.Schema({
     googleProfilePic: {
         type: String,
     },
+    githubId: {
+        type: String,
+    },
     contact: {
         type: String,
     },
     profilePicture: {
-        data: Buffer, // Binary data for the image
-        contentType: String, // MIME type (e.g., 'image/png', 'image/jpeg')
+        data: Buffer,
+        contentType: String,
     },
     address: {
         street: String,
@@ -55,7 +56,6 @@ const userSchema = new mongoose.Schema({
         default: 250,
     }
 });
-
 
 const userModel = mongoose.model("User", userSchema);
 

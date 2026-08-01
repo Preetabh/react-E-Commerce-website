@@ -160,11 +160,11 @@ const Home = () => {
         gravity: "top",
         position: "right",
         style: {
-          background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
           color: "#fff",
           borderRadius: "12px",
           fontWeight: "700",
-          boxShadow: "0 10px 25px rgba(37,99,235,0.35)",
+          boxShadow: "0 10px 25px rgba(15,23,42,0.35)",
         },
       }).showToast();
     } catch (error) {
@@ -245,24 +245,24 @@ const Home = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="premium-card-border group flex flex-col justify-between p-5 rounded-3xl transition-all duration-300 relative overflow-hidden"
+        className="bg-white border border-slate-200/80 group flex flex-col justify-between p-5 rounded-3xl transition-all duration-300 relative overflow-hidden shadow-xs hover:shadow-md"
       >
         <div className="block flex-1">
           {/* Top Tag Badges */}
           <div className="flex items-center justify-between gap-2 mb-3">
             {hasDiscount ? (
-              <span className="bg-[#0f172a] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+              <span className="bg-[#0f172a] text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
                 Save ₹{discountAmt.toLocaleString("en-IN")} ({discountPercent}% OFF)
               </span>
             ) : (
-              <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-slate-100 text-slate-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 {product.category || "Gadget"}
               </span>
             )}
 
             <button
               onClick={() => setQuickViewProduct(product)}
-              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+              className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
               title="Quick View"
             >
               <Eye size={17} />
@@ -271,7 +271,7 @@ const Home = () => {
 
           {/* Product Image Container */}
           <Link to={`/products/${product._id}`} className="block">
-            <div className="relative h-52 w-full flex items-center justify-center p-4 mb-4 bg-[#f4f3ef] rounded-2xl group-hover:bg-[#ebe9e3] transition-all duration-300">
+            <div className="relative h-52 w-full flex items-center justify-center p-4 mb-4 bg-slate-50 rounded-2xl group-hover:bg-slate-100/80 transition-all duration-300 border border-slate-100">
               <img
                 src={
                   product.images?.[0]?.url ||
@@ -282,33 +282,27 @@ const Home = () => {
                 loading="lazy"
                 className="max-h-44 max-w-full object-contain transform group-hover:scale-105 transition-transform duration-500 ease-out"
                 onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/200";
+                  e.target.src = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800";
                   e.target.onerror = null;
                 }}
               />
             </div>
 
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block">
+              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
                 {product.category || "Flagship Model"}
               </span>
-              <h3 className="text-base font-bold text-[#0f172a] group-hover:text-blue-600 transition-colors line-clamp-1">
+              <h3 className="text-base font-extrabold text-[#0f172a] group-hover:text-slate-700 transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </div>
 
             <div className="mt-3 flex items-baseline gap-2">
-              {hasDiscount ? (
-                <>
-                  <span className="text-lg font-extrabold text-[#0f172a]">
-                    ₹{product.discount.toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-xs text-slate-400 line-through font-semibold">
-                    ₹{product.price.toLocaleString("en-IN")}
-                  </span>
-                </>
-              ) : (
-                <span className="text-lg font-extrabold text-[#0f172a]">
+              <span className="text-xl font-black text-[#0f172a]">
+                ₹{(product.discount || product.price).toLocaleString("en-IN")}
+              </span>
+              {hasDiscount && (
+                <span className="text-xs text-slate-400 line-through font-semibold">
                   ₹{product.price.toLocaleString("en-IN")}
                 </span>
               )}
@@ -316,19 +310,17 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-5 grid grid-cols-5 gap-2">
-          <button
-            onClick={() => setQuickViewProduct(product)}
-            className="col-span-1 border border-slate-200 text-slate-700 hover:bg-slate-50 py-2.5 rounded-full flex items-center justify-center transition-all active:scale-95"
-            title="Quick View"
+        <div className="pt-4 mt-2 border-t border-slate-100 grid grid-cols-5 gap-2">
+          <Link
+            to={`/products/${product._id}`}
+            className="col-span-1 border border-slate-200 text-slate-700 hover:bg-slate-100 py-2.5 rounded-xl flex items-center justify-center transition-colors"
+            title="View Details"
           >
-            <Eye size={16} />
-          </button>
-
+            <ArrowRight size={16} />
+          </Link>
           <button
             onClick={() => addToCart(product._id, product.name)}
-            className="col-span-4 apple-btn-primary py-2.5 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold transition-all active:scale-95"
+            className="col-span-4 bg-[#0f172a] hover:bg-slate-800 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold transition-all active:scale-95 shadow-xs"
           >
             <ShoppingBag size={15} />
             <span>Add to Bag</span>
@@ -342,69 +334,63 @@ const Home = () => {
     <div className="bg-[#fcfbf9] min-h-screen text-[#0f172a] relative">
       <Navbar />
 
-      {/* Hero Showcase Carousel */}
+      {/* Classy Light Theme Hero Showcase */}
       <section className="pt-24 pb-6 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
         <motion.div
           key={bannerIndex}
-          initial={{ opacity: 0, scale: 0.99 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative w-full rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#020617] text-white p-8 md:p-14 overflow-hidden shadow-2xl flex flex-col md:flex-row items-center justify-between min-h-[420px] border border-slate-800"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="relative w-full rounded-3xl bg-white border border-slate-200/80 text-slate-900 p-8 sm:p-12 md:p-14 overflow-hidden shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[440px]"
         >
-          {/* Ambient Glows */}
-          <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-600/30 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+          {/* Subtle Ambient Decorative Accents */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-900/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 md:w-3/5 text-center md:text-left space-y-4">
             <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-extrabold tracking-wider text-blue-300 uppercase">
-                <Sparkles size={12} />
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-slate-900 text-white text-xs font-extrabold tracking-wider uppercase shadow-xs">
+                <Sparkles size={13} className="text-amber-400" />
                 {banners[bannerIndex].tag}
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-200 text-xs font-semibold border border-blue-400/25">
-                <Zap size={11} className="text-blue-400" />
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-900 text-xs font-extrabold border border-amber-200">
+                <Zap size={12} className="text-amber-600" />
                 {banners[bannerIndex].highlight}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
               {banners[bannerIndex].title}
             </h1>
-            <p className="text-base sm:text-lg text-slate-300 font-normal max-w-xl">
+            <p className="text-base sm:text-lg text-slate-600 font-medium max-w-xl">
               {banners[bannerIndex].subtitle}
             </p>
 
-            <div className="pt-3 flex flex-wrap gap-4 justify-center md:justify-start items-center">
+            <div className="pt-4 flex flex-wrap gap-3 justify-center md:justify-start items-center">
               <a
                 href="#products-grid"
-                className="apple-btn-primary text-sm py-3 px-6 shadow-lg inline-flex items-center gap-2 font-bold"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-extrabold py-3.5 px-7 rounded-2xl shadow-md inline-flex items-center gap-2 transition-all active:scale-98"
               >
-                Explore Collection
+                <span>Explore Collection</span>
                 <ChevronRight size={16} />
               </a>
-
-              <Link
-                to="/users/helpcenter"
-                className="px-5 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors backdrop-blur-sm inline-flex items-center gap-2 border border-white/10"
-              >
-                <Sparkles size={15} className="text-blue-400" />
-                <span>Genius AI Assist</span>
-              </Link>
             </div>
           </div>
 
-          <div className="relative z-10 md:w-2/5 mt-8 md:mt-0 flex justify-center preserve-3d">
-            <motion.img
-              initial={{ y: 15, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              src={bannersImage[bannerIndex].image}
-              alt="Banner Showcase"
-              className="max-h-72 w-auto object-contain drop-shadow-[0_20px_50px_rgba(37,99,235,0.35)] animate-float-3d"
-            />
+          <div className="relative z-10 md:w-2/5 mt-8 md:mt-0 flex justify-center w-full">
+            <div className="relative w-full max-w-sm h-72 rounded-3xl bg-gradient-to-tr from-slate-100 to-amber-50/40 border border-slate-200/60 p-6 flex items-center justify-center shadow-inner">
+              <motion.img
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                src={bannersImage[bannerIndex].image}
+                alt="Banner Showcase"
+                className="max-h-60 w-auto object-contain drop-shadow-[0_15px_30px_rgba(15,23,42,0.12)]"
+              />
+            </div>
           </div>
 
-          {/* Carousel Slide Indicators */}
+          {/* Carousel Controls & Indicators */}
           <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-between px-8 pointer-events-none">
             <div className="flex gap-2 items-center pointer-events-auto">
               {banners.map((_, i) => (
@@ -413,22 +399,22 @@ const Home = () => {
                   onClick={() => setBannerIndex(i)}
                   className={`h-2 rounded-full transition-all duration-300 ${
                     bannerIndex === i
-                      ? "w-8 bg-blue-500"
-                      : "w-2 bg-white/30 hover:bg-white/60"
+                      ? "w-8 bg-slate-900"
+                      : "w-2 bg-slate-200 hover:bg-slate-400"
                   }`}
                   aria-label={`Slide ${i + 1}`}
                 />
               ))}
             </div>
 
-            <div className="flex gap-1 items-center pointer-events-auto">
+            <div className="flex gap-1.5 items-center pointer-events-auto">
               <button
                 onClick={() =>
                   setBannerIndex(
                     (prev) => (prev - 1 + banners.length) % banners.length
                   )
                 }
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors"
+                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
                 aria-label="Previous Slide"
               >
                 <ChevronLeft size={16} />
@@ -437,7 +423,7 @@ const Home = () => {
                 onClick={() =>
                   setBannerIndex((prev) => (prev + 1) % banners.length)
                 }
-                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-colors"
+                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
                 aria-label="Next Slide"
               >
                 <ChevronRight size={16} />
@@ -448,235 +434,169 @@ const Home = () => {
       </section>
 
       {/* Trust & Guarantee Strip */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 my-4 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 rounded-3xl border border-slate-900/5 shadow-sm">
-          <div className="flex items-center gap-3 p-2">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold">
-              <Truck size={20} />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#0f172a]">Express Shipping</h4>
-              <p className="text-[11px] text-slate-500">Free delivery over ₹999</p>
-            </div>
+      <section className="py-6 px-4 max-w-7xl mx-auto border-y border-slate-200/60 my-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-xs font-semibold text-slate-600">
+          <div className="flex items-center justify-center gap-2">
+            <Truck size={18} className="text-slate-900" />
+            <span>Free Express Shipping</span>
           </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="w-10 h-10 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 font-bold">
-              <ShieldCheck size={20} />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#0f172a]">Genuine Quality</h4>
-              <p className="text-[11px] text-slate-500">2-Year Store Care Warranty</p>
-            </div>
+          <div className="flex items-center justify-center gap-2">
+            <ShieldCheck size={18} className="text-slate-900" />
+            <span>1 Year Official Warranty</span>
           </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 font-bold">
-              <Zap size={20} />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#0f172a]">Instant Bag Sync</h4>
-              <p className="text-[11px] text-slate-500">1-Click fast checkout</p>
-            </div>
+          <div className="flex items-center justify-center gap-2">
+            <RotateCcw size={18} className="text-slate-900" />
+            <span>14-Day Easy Returns</span>
           </div>
-
-          <div className="flex items-center gap-3 p-2">
-            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 font-bold">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <h4 className="text-xs font-bold text-[#0f172a]">Genius AI Support</h4>
-              <p className="text-[11px] text-slate-500">24/7 Smart assistance</p>
-            </div>
+          <div className="flex items-center justify-center gap-2">
+            <Star size={18} className="text-amber-500 fill-amber-500" />
+            <span>4.9 / 5 Rated Experience</span>
           </div>
         </div>
       </section>
 
-      {/* Category Pills Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 my-6 relative z-10">
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 no-scrollbar">
+      {/* Main Catalog Search & Category Filter Section */}
+      <section id="products-grid" className="py-8 px-4 sm:px-6 max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              Explore Flagship Catalog
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+              Select from curated categories or search by model name.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72">
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                type="text"
+                placeholder="Search products or models..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-slate-200 text-slate-900 placeholder-slate-400 text-xs font-semibold focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 shadow-xs transition-all"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 bg-white px-3.5 py-2.5 rounded-2xl border border-slate-200 shadow-xs text-xs font-bold text-slate-700 w-full sm:w-auto">
+              <SlidersHorizontal size={15} className="text-slate-500" />
+              <span>Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-transparent font-extrabold text-slate-900 focus:outline-none cursor-pointer"
+              >
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="discount">Biggest Discounts</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Pill Counters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {categoryList.map((cat) => {
             const isSelected = selectedCategory === cat.value;
-            const count = categoryCounts[cat.value];
+            const count = categoryCounts[cat.value] || 0;
             return (
               <button
                 key={cat.label}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-extrabold shrink-0 transition-all ${
                   isSelected
-                    ? "bg-[#0f172a] text-white shadow-md shadow-slate-900/20 scale-105"
-                    : "bg-white text-slate-700 border border-slate-900/10 hover:bg-slate-100"
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 shadow-xs"
                 }`}
               >
-                {cat.icon && <span className="text-xs">{cat.icon}</span>}
+                <span className="text-sm">{cat.icon}</span>
                 <span>{cat.label}</span>
-                {count !== undefined && (
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isSelected
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-100 text-slate-600"
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                    isSelected
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
-      </section>
 
-      {/* Search Bar & Sorting Controls */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8 relative z-10">
-        <div className="bg-white p-3 rounded-2xl border border-slate-900/10 shadow-sm flex flex-col md:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Search flagship products, specifications, categories..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-10 py-2.5 bg-[#fcfbf9] border border-slate-900/10 rounded-xl text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600/30 focus:border-blue-600 transition-all text-[#0f172a]"
-            />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold px-2">
-              <SlidersHorizontal size={14} />
-              <span>Sort:</span>
-            </div>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-[#fcfbf9] border border-slate-900/10 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-blue-600/30 cursor-pointer"
-            >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="discount">Biggest Discount</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
-      {/* Products Display Section */}
-      <main id="products-grid" className="max-w-7xl mx-auto px-4 sm:px-6 py-4 relative z-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-3 border-b border-slate-900/10">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f172a]">
-              Featured Collection
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Hand-picked devices engineered for ultra performance.
-            </p>
-          </div>
-          <span className="text-xs font-bold text-slate-600 mt-2 sm:mt-0 bg-white px-3 py-1 rounded-full border border-slate-900/10">
-            Showing {filteredProducts.length} items
-          </span>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {loading ? (
-            Array.from({ length: 8 }).map((_, index) => (
+        {/* Products Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-12">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div
-                key={index}
-                className="h-80 bg-white rounded-3xl animate-pulse shadow-sm border border-slate-900/5"
-              />
-            ))
-          ) : filteredProducts.length > 0 ? (
-            <>
-              {filteredProducts.slice(0, 8).map(renderProductCard)}
-
-              {/* Luxury Banner Insert */}
-              <div className="col-span-full my-4 rounded-3xl bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#020617] text-white p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between shadow-xl border border-slate-800">
-                <div className="md:w-1/2 space-y-3 z-10">
-                  <span className="text-xs font-extrabold text-blue-400 uppercase tracking-widest inline-flex items-center gap-1">
-                    <Star size={13} className="fill-current text-blue-400" />
-                    EXCLUSIVE OFFER
-                  </span>
-                  <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                    Upgrade to Next-Gen Tech.
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-300 max-w-md">
-                    Get extra savings on top-rated headphones, monitors, and smartwear today.
-                  </p>
-                  <button
-                    onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                    className="apple-btn-primary inline-flex items-center gap-2 text-xs sm:text-sm mt-3 font-bold"
-                  >
-                    <span>Shop All Gadgets</span>
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-                <div className="md:w-1/2 mt-6 md:mt-0 flex justify-center z-10">
-                  <img
-                    src="https://i.ibb.co/fY2pc8c1/LS20250730225719.png"
-                    alt="Gadget Promo"
-                    loading="lazy"
-                    className="max-h-60 object-contain drop-shadow-2xl"
-                  />
-                </div>
-              </div>
-
-              {filteredProducts.slice(8).map(renderProductCard)}
-            </>
-          ) : (
-            <div className="col-span-full py-16 text-center bg-white rounded-3xl shadow-sm border border-slate-900/10">
-              <PackageX size={48} className="mx-auto text-slate-400 mb-3" />
-              <h3 className="text-base sm:text-lg font-bold text-[#0f172a]">
-                No matching products found
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                Try adjusting your search query or selected category filter.
-              </p>
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("");
-                  setSortBy("featured");
-                }}
-                className="apple-btn-dark text-xs mt-4 py-2 px-5 font-bold"
+                key={n}
+                className="bg-white p-5 rounded-3xl border border-slate-200 animate-pulse space-y-4"
               >
-                Reset Filters
-              </button>
-            </div>
-          )}
-        </div>
-      </main>
+                <div className="h-48 bg-slate-100 rounded-2xl w-full" />
+                <div className="h-4 bg-slate-100 rounded w-3/4" />
+                <div className="h-4 bg-slate-100 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4">
+            {filteredProducts.map((product) => renderProductCard(product))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-xs space-y-4">
+            <PackageX size={48} className="mx-auto text-slate-400" />
+            <h3 className="text-lg font-bold text-slate-900">No products found</h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              We couldn&apos;t find any items matching &quot;{searchTerm}&quot;. Try adjusting your search query or category filter.
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("");
+              }}
+              className="bg-slate-900 text-white text-xs font-bold py-2.5 px-5 rounded-2xl shadow-xs"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
+      </section>
 
-      {/* Quick View Product Modal */}
+      {/* Quick View Modal */}
       <AnimatePresence>
         {quickViewProduct && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f172a]/60 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.25 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 relative overflow-hidden max-h-[90vh] overflow-y-auto border border-slate-900/10"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 relative border border-slate-200 overflow-hidden"
             >
               <button
                 onClick={() => setQuickViewProduct(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+                className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
               >
                 <X size={18} />
               </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                <div className="bg-[#f4f3ef] rounded-2xl p-6 flex items-center justify-center border border-slate-900/10">
+                <div className="bg-slate-50 rounded-2xl p-6 flex items-center justify-center border border-slate-100 h-64">
                   <img
                     src={
                       quickViewProduct.images?.[0]?.url ||
@@ -684,68 +604,49 @@ const Home = () => {
                       "https://via.placeholder.com/200"
                     }
                     alt={quickViewProduct.name}
-                    className="max-h-64 object-contain"
+                    className="max-h-52 object-contain"
                   />
                 </div>
 
                 <div className="space-y-4">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block">
-                    {quickViewProduct.category || "Gadget"}
+                  <span className="text-xs font-extrabold text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 uppercase tracking-wider">
+                    {quickViewProduct.category || "Flagship"}
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#0f172a]">
+                  <h2 className="text-xl font-black text-slate-900 leading-snug">
                     {quickViewProduct.name}
                   </h2>
 
-                  <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 font-medium">
-                    {quickViewProduct.description ||
-                      "High-performance design crafted with premium materials for maximum durability and unmatched user experience."}
+                  <p className="text-xs text-slate-600 line-clamp-3 font-medium">
+                    {quickViewProduct.details || quickViewProduct.information || "Premium quality flagship product."}
                   </p>
 
-                  <div className="pt-2">
-                    {quickViewProduct.discount &&
-                    quickViewProduct.price > quickViewProduct.discount ? (
-                      <div className="space-y-1">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-extrabold text-[#0f172a]">
-                            ₹{quickViewProduct.discount.toLocaleString("en-IN")}
-                          </span>
-                          <span className="text-base text-slate-400 line-through font-semibold">
-                            ₹{quickViewProduct.price.toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                        <p className="text-xs font-bold text-emerald-600">
-                          You save ₹
-                          {(
-                            quickViewProduct.price - quickViewProduct.discount
-                          ).toLocaleString("en-IN")}{" "}
-                          instantly!
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="text-2xl font-extrabold text-[#0f172a]">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-black text-slate-900">
+                      ₹{(quickViewProduct.discount || quickViewProduct.price).toLocaleString("en-IN")}
+                    </span>
+                    {quickViewProduct.discount && quickViewProduct.price > quickViewProduct.discount && (
+                      <span className="text-xs text-slate-400 line-through font-semibold">
                         ₹{quickViewProduct.price.toLocaleString("en-IN")}
                       </span>
                     )}
                   </div>
 
-                  <div className="pt-4 flex flex-col gap-2">
+                  <div className="pt-2 flex gap-3">
                     <button
                       onClick={() => {
                         addToCart(quickViewProduct._id, quickViewProduct.name);
                         setQuickViewProduct(null);
                       }}
-                      className="w-full apple-btn-primary py-3 flex items-center justify-center gap-2 text-sm font-bold shadow-md"
+                      className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 px-6 rounded-2xl text-xs flex-1 flex items-center justify-center gap-2 shadow-md"
                     >
-                      <ShoppingBag size={18} />
+                      <ShoppingBag size={16} />
                       <span>Add to Bag</span>
                     </button>
-
                     <Link
                       to={`/products/${quickViewProduct._id}`}
-                      onClick={() => setQuickViewProduct(null)}
-                      className="w-full text-center py-2 text-xs font-bold text-blue-600 hover:underline"
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold py-3 px-5 rounded-2xl text-xs flex items-center justify-center border border-slate-200"
                     >
-                      View Full Specifications →
+                      Details
                     </Link>
                   </div>
                 </div>

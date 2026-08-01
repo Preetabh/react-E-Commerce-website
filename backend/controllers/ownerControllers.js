@@ -341,7 +341,7 @@ ownerControllers.OwnerAllOrders = async (req, res) => {
     const users = await userModel.find().populate({
       path: "orders.productId",
       model: "Product",
-      select: "name price", // Fetching product name, price, and image
+      select: "name price images",
     });
 
     const orders = users.flatMap((user) =>
@@ -350,14 +350,16 @@ ownerControllers.OwnerAllOrders = async (req, res) => {
         userId: user._id,
         userName: `${user.firstname} ${user.lastname}`,
         email: user.email,
-        contact: user.contact || "Not provided", // Ensure contact is included
-        orderName: order.productId ? order.productId.name : "Unknown", // Ensure order name is displayed
-
+        contact: user.contact || "Not provided",
+        orderName: order.productId ? order.productId.name : "Unknown",
         price: order.price,
         status: order.status,
         orderDate: order.orderDate,
       }))
     );
+
+    // Sort orders from Newest to Oldest (New -> Old)
+    orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
 
     res.status(200).json({ success: true, orders });
   } catch (error) {
