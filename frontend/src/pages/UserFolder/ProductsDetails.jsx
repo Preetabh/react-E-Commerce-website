@@ -87,6 +87,7 @@ const ProductsDetails = () => {
           withCredentials: true,
         }
       );
+      window.dispatchEvent(new Event("cartUpdated"));
       toast.success("Product added to Bag successfully! 🛒");
     } catch (error) {
       console.error("❌ Error adding product to cart:", error);

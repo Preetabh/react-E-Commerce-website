@@ -4,11 +4,26 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: "/", // ✅ Ensure correct base path
+  base: "/",
   server: {
-    historyApiFallback: true, // ✅ Fix routing issue
+    historyApiFallback: true,
   },
   build: {
-    outDir: "dist", // ✅ Ensure correct output folder
+    outDir: "dist",
+    target: "esnext",
+    minify: "esbuild",
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-motion": ["framer-motion"],
+          "vendor-icons": ["lucide-react", "react-icons"],
+          "vendor-3d": ["three", "ogl"],
+          "vendor-utils": ["axios", "sweetalert2"],
+        },
+      },
+    },
   },
 });

@@ -1,5 +1,9 @@
 import { HashRouter as Router, Routes, Route } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
+import ScrollToTop from "./components/ScrollToTop.jsx";
+import Preloader from "./components/Preloader.jsx";
+import TopLoader from "./components/TopLoader.jsx";
+import Logo from "./components/Logo.jsx";
 
 /* =======================
    User Pages (Lazy)
@@ -52,28 +56,33 @@ const RouteProtection = lazy(() =>
    Loader Component
 ======================= */
 const PageLoader = () => (
-  <div style={{ textAlign: "center", marginTop: "40px" }}>
-    <h2>🌀 Loading Page...</h2>
+  <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-800">
+    <div className="animate-pulse mb-4">
+      <Logo size="md" variant="default" animated={true} />
+    </div>
+    <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-2" />
+    <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Loading Page...</span>
   </div>
 );
-
-import ScrollToTop from "./components/ScrollToTop.jsx";
-
-import { useEffect } from "react";
 
 /* =======================
    App Component
 ======================= */
 const App = () => {
+  const [initialLoading, setInitialLoading] = useState(true);
+
   useEffect(() => {
     console.log("🚀 [Shop Mart App Initialized]");
     console.log("📍 [Config Debug] VITE_BASE_URL:", import.meta.env.VITE_BASE_URL || "http://localhost:4000 (Default fallback)");
   }, []);
 
   return (
-    <Router>
-      <ScrollToTop />
-      <Suspense fallback={<PageLoader />}>
+    <>
+      {initialLoading && <Preloader onComplete={() => setInitialLoading(false)} />}
+      <Router>
+        <TopLoader />
+        <ScrollToTop />
+        <Suspense fallback={<PageLoader />}>
 
 
         <Routes>
@@ -121,6 +130,7 @@ const App = () => {
         </Routes>
       </Suspense>
     </Router>
+    </>
   );
 };
 

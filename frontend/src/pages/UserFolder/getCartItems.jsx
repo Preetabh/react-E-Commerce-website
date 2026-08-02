@@ -14,6 +14,7 @@ import "../../App.css";
 
 const GetCartItems = () => {
   const [cartItems, setCartItems] = useState([]);
+  const [itemQuantities, setItemQuantities] = useState({});
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -45,6 +46,16 @@ const GetCartItems = () => {
     fetchCartItems();
   }, [navigate]);
 
+  const getItemQuantity = (itemId) => itemQuantities[itemId] || 1;
+
+  const handleQuantityChange = (itemId, delta) => {
+    setItemQuantities((prev) => {
+      const current = prev[itemId] || 1;
+      const updated = Math.max(1, current + delta);
+      return { ...prev, [itemId]: updated };
+    });
+  };
+
   const handleRemoveItem = async (itemId, itemName) => {
     try {
       const token = localStorage.getItem("token");
@@ -64,28 +75,19 @@ const GetCartItems = () => {
     }
   };
 
-  const handleBuyAllItems = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/orders/buy-all`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-      toast.success("🎉 All items ordered successfully!");
-      navigate("/checkout");
-    } catch (error) {
-      console.error("Error processing buy all:", error);
-      toast.error("❌ Failed to process purchase!");
-    }
+  const handleBuyAllItems = () => {
+    if (cartItems.length === 0) return;
+    navigate("/users/buynow/all");
   };
 
   const totalCartPrice = cartItems.reduce(
     (total, item) =>
-      total + Number(item.discount || item.price) * Number(item.quantity || 1),
+      total + Number(item.discount || item.price) * getItemQuantity(item._id),
+    0
+  );
+
+  const totalCartCount = cartItems.reduce(
+    (total, item) => total + getItemQuantity(item._id),
     0
   );
 
@@ -148,11 +150,11 @@ const GetCartItems = () => {
                         </h3>
                         <div className="text-right">
                           <span className="text-xl font-bold text-[#1d1d1f]">
-                            ₹{(Number(item.discount || item.price) * Number(item.quantity || 1)).toLocaleString("en-IN")}
+                            ₹{(Number(item.discount || item.price) * getItemQuantity(item._id)).toLocaleString("en-IN")}
                           </span>
                           {item.discount && item.price > item.discount && (
                             <span className="block text-xs text-[#86868b] line-through">
-                              ₹{(Number(item.price) * Number(item.quantity || 1)).toLocaleString("en-IN")}
+                              ₹{(Number(item.price) * getItemQuantity(item._id)).toLocaleString("en-IN")}
                             </span>
                           )}
                         </div>
@@ -163,6 +165,28 @@ const GetCartItems = () => {
                       </p>
 
                       <div className="pt-3 flex flex-wrap items-center justify-center sm:justify-start gap-4">
+                        {/* Quantity Counter Buttons */}
+                        <div className="flex items-center gap-2 bg-[#f5f5f7] px-3 py-1.5 rounded-full border border-black/10 shadow-inner">
+                          <span className="text-xs font-semibold text-[#86868b]">Qty:</span>
+                          <button
+                            onClick={() => handleQuantityChange(item._id, -1)}
+                            className="w-6 h-6 rounded-full bg-white shadow-xs font-extrabold text-xs flex items-center justify-center text-[#1d1d1f] hover:bg-slate-200 active:scale-90 transition select-none"
+                            aria-label="Decrease quantity"
+                          >
+                            -
+                          </button>
+                          <span className="font-extrabold text-xs text-[#1d1d1f] px-1 min-w-4 text-center">
+                            {getItemQuantity(item._id)}
+                          </span>
+                          <button
+                            onClick={() => handleQuantityChange(item._id, 1)}
+                            className="w-6 h-6 rounded-full bg-white shadow-xs font-extrabold text-xs flex items-center justify-center text-[#1d1d1f] hover:bg-slate-200 active:scale-90 transition select-none"
+                            aria-label="Increase quantity"
+                          >
+                            +
+                          </button>
+                        </div>
+
                         <Link
                           to={`/users/buynow/${item._id}`}
                           className="apple-btn-primary text-xs py-2 px-4"
@@ -189,7 +213,7 @@ const GetCartItems = () => {
 
                   <div className="space-y-3 text-sm border-b border-black/5 pb-4">
                     <div className="flex justify-between text-[#515154]">
-                      <span>Subtotal ({cartItems.length} items)</span>
+                      <span>Subtotal ({totalCartCount} items)</span>
                       <span className="font-semibold text-[#1d1d1f]">
                         ₹{totalCartPrice.toLocaleString("en-IN")}
                       </span>
@@ -213,7 +237,7 @@ const GetCartItems = () => {
 
                   <button
                     onClick={handleBuyAllItems}
-                    className="w-full apple-btn-primary py-3.5 flex items-center justify-center gap-2 text-base font-semibold shadow-md active:scale-95"
+                    className="w-full apple-btn-primary py-3.5 flex items-center justify-center gap-2 text-base font-semibold shadow-md active:scale-95 cursor-pointer"
                   >
                     <span>Check Out All Items</span>
                     <ArrowRight size={18} />

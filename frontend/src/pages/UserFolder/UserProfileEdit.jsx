@@ -36,11 +36,14 @@ const UserProfileEdit = () => {
           withCredentials: true,
         });
 
+        const rawContact = response.data.contact || "";
+        const cleanContact = (rawContact === "0000000000") ? "" : rawContact;
+
         setUserData({
           firstname: response.data.firstname || "",
           lastname: response.data.lastname || "",
           email: response.data.email || "",
-          contact: response.data.contact || "",
+          contact: cleanContact,
           profilePicture: response.data.profilePicture || null,
           address: response.data.address || {
             street: "",
@@ -230,19 +233,15 @@ const UserProfileEdit = () => {
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-xs font-semibold text-[#86868b]">Contact Number</label>
-                  <span className="text-[10px] font-bold text-gray-500 bg-gray-200 px-2 py-0.5 rounded-md flex items-center gap-1">
-                    <Lock size={10} /> Fixed Phone
-                  </span>
-                </div>
+                <label className="block text-xs font-semibold text-[#86868b] mb-1">Contact Number</label>
                 <input
-                  type="text"
+                  type="tel"
                   name="contact"
                   value={userData.contact}
-                  readOnly
-                  disabled
-                  className="apple-input bg-gray-100/80 text-gray-500 cursor-not-allowed border-dashed"
+                  onChange={handleChange}
+                  placeholder="Enter 10-digit mobile number"
+                  maxLength={10}
+                  className="apple-input"
                 />
               </div>
             </div>

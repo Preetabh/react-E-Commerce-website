@@ -16,6 +16,7 @@ import {
   PackageCheck,
   Sparkles,
 } from "lucide-react";
+import Logo from "./Logo";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,6 +41,27 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const [cartCount, setCartCount] = useState(0);
+
+  const fetchCartItemsCount = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return setCartCount(0);
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/users/getCartItems`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+      if (Array.isArray(res.data)) {
+        setCartCount(res.data.length);
+      }
+    } catch (err) {
+      console.log("Cart sync note:", err.message);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -57,6 +79,10 @@ const Navbar = () => {
         })
         .catch((err) => console.log("Navbar profile coins sync:", err.message));
     }
+
+    fetchCartItemsCount();
+    window.addEventListener("cartUpdated", fetchCartItemsCount);
+    return () => window.removeEventListener("cartUpdated", fetchCartItemsCount);
   }, [location]);
 
   const handleLogout = async () => {
@@ -94,7 +120,7 @@ const Navbar = () => {
       <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Floating Auto-Adjusting Premium Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 pointer-events-none transition-all duration-500">
+      <header className="fixed top-0 left-0 right-0 z-50 flex justify-center px-3 sm:px-6 pt-2.5 sm:pt-3 pointer-events-none transition-all duration-500">
         <motion.div
           layout
           initial={{ y: -50, opacity: 0 }}
@@ -102,42 +128,18 @@ const Navbar = () => {
           transition={{ type: "spring", stiffness: 260, damping: 25 }}
           className={`pointer-events-auto w-full transition-all duration-500 ease-out border ${
             isScrolled
-              ? "max-w-5xl mt-3 py-2 px-5 rounded-full bg-[#0f172a]/95 text-white backdrop-blur-2xl shadow-2xl shadow-slate-950/20 border-slate-800"
-              : "max-w-7xl mt-0 sm:mt-2 py-3.5 px-6 rounded-none sm:rounded-3xl bg-[#fcfbf9]/85 text-[#0f172a] backdrop-blur-md shadow-sm border-slate-900/10"
+              ? "max-w-5xl py-2 px-5 rounded-full bg-[#0f172a]/95 text-white backdrop-blur-2xl shadow-2xl shadow-slate-950/30 border-slate-800"
+              : "max-w-7xl py-2.5 px-6 rounded-2xl sm:rounded-full bg-white/90 text-[#0f172a] backdrop-blur-xl shadow-md border-slate-200/80"
           }`}
         >
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center py-0.5">
             {/* Brand Logo */}
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <motion.div
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.95 }}
-                className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-colors ${
-                  isScrolled
-                    ? "bg-white text-[#0f172a]"
-                    : "bg-[#0f172a] text-white"
-                }`}
-              >
-                <Apple size={17} className="fill-current" />
-              </motion.div>
-              <div className="flex flex-col">
-                <span
-                  className={`text-base font-extrabold tracking-tight leading-none transition-colors ${
-                    isScrolled
-                      ? "text-white group-hover:text-blue-400"
-                      : "text-[#0f172a] group-hover:text-blue-600"
-                  }`}
-                >
-                  Shop Mart
-                </span>
-                <span
-                  className={`text-[10px] font-bold tracking-widest uppercase ${
-                    isScrolled ? "text-slate-400" : "text-slate-500"
-                  }`}
-                >
-                  Luxury Mall
-                </span>
-              </div>
+            <Link to="/" className="flex items-center group">
+              <Logo
+                size="md"
+                variant={isScrolled ? "light" : "default"}
+                animated={false}
+              />
             </Link>
 
             {/* Desktop Navigation */}
@@ -180,6 +182,11 @@ const Navbar = () => {
                     >
                       <Icon size={14} />
                       <span>{label}</span>
+                      {label === "Bag" && cartCount > 0 && (
+                        <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-cyan-400 text-slate-950 animate-pulse shadow-xs">
+                          {cartCount}
+                        </span>
+                      )}
                     </span>
                   </Link>
                 );

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Apple, ShieldCheck, Truck, RotateCcw, CreditCard } from "lucide-react";
+import { ShieldCheck, Truck, RotateCcw, CreditCard } from "lucide-react";
+import Logo from "./Logo";
 
 const Footer = () => {
   return (
@@ -39,7 +40,7 @@ const Footer = () => {
         {/* Footer Navigation & Copyright */}
         <div className="pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-[#1d1d1f]">
-            <Apple size={16} />
+            <Logo size="sm" showText={false} variant="dark" />
             <span className="font-medium text-xs text-[#1d1d1f]">Copyright © {new Date().getFullYear()} Shop Mart Inc. All rights reserved.</span>
           </div>
 

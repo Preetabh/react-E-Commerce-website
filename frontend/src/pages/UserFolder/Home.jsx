@@ -4,9 +4,11 @@ import axios from "axios";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Eye,
+  Loader2,
   PackageX,
   RotateCcw,
   Search,
@@ -35,6 +37,7 @@ import "toastify-js/src/toastify.css";
 import "../../App.css";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import CircularGallery from "../../components/CircularGallery";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -92,6 +95,38 @@ const Home = () => {
     { label: "Cameras", value: "camera", icon: <FaCamera /> },
   ];
 
+  const circularGalleryItems = useMemo(() => {
+    const luxuryFallbacks = [
+      { image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop", text: "Studio Headphones" },
+      { image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop", text: "Smart Watch" },
+      { image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop", text: "Ultra Watch" },
+      { image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop", text: "MacBook Pro" },
+      { image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=800&auto=format&fit=crop", text: "Hi-Fi Audio" },
+      { image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop", text: "Pro Lens" },
+      { image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=800&auto=format&fit=crop", text: "Gaming Station" },
+      { image: "https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?q=80&w=800&auto=format&fit=crop", text: "Wireless Pods" },
+    ];
+
+    if (products && products.length > 0) {
+      return products.slice(0, 8).map((p, idx) => {
+        // Shorten long product titles to 1-2 words (max 15 chars) so text never overlaps in WebGL
+        const shortName = p.name
+          ? p.name.split(/[\s,(-]+/)[0].substring(0, 14) + (p.name.split(/[\s,(-]+/)[1] ? " " + p.name.split(/[\s,(-]+/)[1].substring(0, 10) : "")
+          : `Luxury Item ${idx + 1}`;
+
+        const validImg = (p.image && p.image.startsWith("http"))
+          ? p.image
+          : luxuryFallbacks[idx % luxuryFallbacks.length].image;
+
+        return {
+          image: validImg,
+          text: shortName,
+        };
+      });
+    }
+    return luxuryFallbacks;
+  }, [products]);
+
   useEffect(() => {
     const lenis = new Lenis({ smooth: true, lerp: 0.08 });
     const raf = (time) => {
@@ -125,25 +160,30 @@ const Home = () => {
     return () => clearInterval(interval);
   }, [banners.length]);
 
+  const [addingProductIds, setAddingProductIds] = useState({});
+  const [addedProductIds, setAddedProductIds] = useState({});
+
   const addToCart = async (productId, productName) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      Toastify({
+        text: `Please sign in to add items to your Bag.`,
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        style: {
+          background: "#0f172a",
+          color: "#fff",
+          borderRadius: "12px",
+          fontWeight: "700",
+          boxShadow: "0 10px 25px rgba(15,23,42,0.25)",
+        },
+      }).showToast();
+      return navigate("/users/login");
+    }
+
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        Toastify({
-          text: `Please sign in to add items to your Bag.`,
-          duration: 3000,
-          gravity: "top",
-          position: "right",
-          style: {
-            background: "#0f172a",
-            color: "#fff",
-            borderRadius: "12px",
-            fontWeight: "700",
-            boxShadow: "0 10px 25px rgba(15,23,42,0.25)",
-          },
-        }).showToast();
-        return navigate("/users/login");
-      }
+      setAddingProductIds((prev) => ({ ...prev, [productId]: true }));
 
       await axios.post(
         `${import.meta.env.VITE_BASE_URL}/users/addtocart`,
@@ -154,17 +194,25 @@ const Home = () => {
         }
       );
 
+      // Dispatch event to update Navbar Bag count instantly
+      window.dispatchEvent(new Event("cartUpdated"));
+
+      setAddedProductIds((prev) => ({ ...prev, [productId]: true }));
+      setTimeout(() => {
+        setAddedProductIds((prev) => ({ ...prev, [productId]: false }));
+      }, 2200);
+
       Toastify({
-        text: `🛒 ${productName} added to Bag`,
-        duration: 3000,
+        text: `🛒 ${productName} added to Bag!`,
+        duration: 2500,
         gravity: "top",
         position: "right",
         style: {
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
           color: "#fff",
           borderRadius: "12px",
-          fontWeight: "700",
-          boxShadow: "0 10px 25px rgba(15,23,42,0.35)",
+          fontWeight: "800",
+          boxShadow: "0 10px 25px rgba(16,185,129,0.35)",
         },
       }).showToast();
     } catch (error) {
@@ -181,6 +229,8 @@ const Home = () => {
           fontWeight: "700",
         },
       }).showToast();
+    } finally {
+      setAddingProductIds((prev) => ({ ...prev, [productId]: false }));
     }
   };
 
@@ -313,17 +363,36 @@ const Home = () => {
         <div className="pt-4 mt-2 border-t border-slate-100 grid grid-cols-5 gap-2">
           <Link
             to={`/products/${product._id}`}
-            className="col-span-1 border border-slate-200 text-slate-700 hover:bg-slate-100 py-2.5 rounded-xl flex items-center justify-center transition-colors"
+            className="col-span-1 border border-slate-200 text-slate-700 hover:bg-slate-100 py-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer hover:scale-105 active:scale-95"
             title="View Details"
           >
             <ArrowRight size={16} />
           </Link>
           <button
             onClick={() => addToCart(product._id, product.name)}
-            className="col-span-4 bg-[#0f172a] hover:bg-slate-800 text-white py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold transition-all active:scale-95 shadow-xs"
+            disabled={addingProductIds[product._id]}
+            className={`col-span-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold transition-all duration-300 active:scale-95 shadow-xs cursor-pointer hover:scale-[1.02] ${
+              addedProductIds[product._id]
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30"
+                : "bg-[#0f172a] hover:bg-slate-800 text-white"
+            }`}
           >
-            <ShoppingBag size={15} />
-            <span>Add to Bag</span>
+            {addingProductIds[product._id] ? (
+              <>
+                <Loader2 size={16} className="animate-spin text-white" />
+                <span>Adding...</span>
+              </>
+            ) : addedProductIds[product._id] ? (
+              <>
+                <CheckCircle2 size={16} className="text-white animate-bounce" />
+                <span>Added to Bag ✓</span>
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={15} />
+                <span>Add to Bag</span>
+              </>
+            )}
           </button>
         </div>
       </motion.div>
@@ -334,103 +403,55 @@ const Home = () => {
     <div className="bg-[#fcfbf9] min-h-screen text-[#0f172a] relative">
       <Navbar />
 
-      {/* Classy Light Theme Hero Showcase */}
-      <section className="pt-24 pb-6 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
-        <motion.div
-          key={bannerIndex}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="relative w-full rounded-3xl bg-white border border-slate-200/80 text-slate-900 p-8 sm:p-12 md:p-14 overflow-hidden shadow-sm flex flex-col md:flex-row items-center justify-between min-h-[440px]"
-        >
-          {/* Subtle Ambient Decorative Accents */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-slate-900/5 rounded-full blur-3xl pointer-events-none" />
+      {/* 3D Circular Gallery Luxury Light Theme Hero Showcase */}
+      <section className="pt-24 sm:pt-28 pb-4 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="relative w-full rounded-3xl bg-gradient-to-br from-white via-slate-50/90 to-blue-50/60 text-slate-900 overflow-hidden shadow-xl shadow-slate-950/5 border border-slate-200/90">
+          {/* Soft Pastel Glowing Ambient Orbs */}
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] rounded-full bg-gradient-to-br from-blue-400/15 via-indigo-400/10 to-cyan-400/15 blur-[140px] pointer-events-none animate-pulse" />
+          <div className="absolute bottom-10 right-10 w-[450px] h-[350px] rounded-full bg-gradient-to-tr from-purple-400/15 via-amber-400/10 to-blue-400/10 blur-[130px] pointer-events-none" />
 
-          <div className="relative z-10 md:w-3/5 text-center md:text-left space-y-4">
-            <div className="flex flex-wrap gap-2 justify-center md:justify-start items-center">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-slate-900 text-white text-xs font-extrabold tracking-wider uppercase shadow-xs">
-                <Sparkles size={13} className="text-amber-400" />
-                {banners[bannerIndex].tag}
-              </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-900 text-xs font-extrabold border border-amber-200">
-                <Zap size={12} className="text-amber-600" />
-                {banners[bannerIndex].highlight}
+          {/* Overlay Hero Text Header */}
+          <div className="relative z-20 pt-10 px-6 sm:px-12 text-center max-w-3xl mx-auto space-y-3 pointer-events-none">
+            <div className="flex justify-center items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 text-blue-700 text-xs font-extrabold border border-blue-200/80 backdrop-blur-md shadow-xs">
+                <Sparkles size={14} className="text-amber-500 animate-pulse" />
+                3D LUXURY SHOWCASE
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
-              {banners[bannerIndex].title}
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+              Store.{" "}
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                The best way to buy
+              </span>{" "}
+              the tech you love.
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 font-medium max-w-xl">
-              {banners[bannerIndex].subtitle}
+            <p className="text-sm sm:text-base text-slate-600 font-medium max-w-xl mx-auto leading-relaxed">
+              Drag left or right to explore our flagship collection in 3D WebGL space.
             </p>
-
-            <div className="pt-4 flex flex-wrap gap-3 justify-center md:justify-start items-center">
-              <a
-                href="#products-grid"
-                className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-extrabold py-3.5 px-7 rounded-2xl shadow-md inline-flex items-center gap-2 transition-all active:scale-98"
-              >
-                <span>Explore Collection</span>
-                <ChevronRight size={16} />
-              </a>
-            </div>
           </div>
 
-          <div className="relative z-10 md:w-2/5 mt-8 md:mt-0 flex justify-center w-full">
-            <div className="relative w-full max-w-sm h-72 rounded-3xl bg-gradient-to-tr from-slate-100 to-amber-50/40 border border-slate-200/60 p-6 flex items-center justify-center shadow-inner">
-              <motion.img
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.4 }}
-                src={bannersImage[bannerIndex].image}
-                alt="Banner Showcase"
-                className="max-h-60 w-auto object-contain drop-shadow-[0_15px_30px_rgba(15,23,42,0.12)]"
-              />
-            </div>
+          {/* 3D Canvas Circular Gallery Canvas */}
+          <div style={{ height: "500px", position: "relative" }} className="w-full relative z-10 mt-2">
+            <CircularGallery
+              items={circularGalleryItems}
+              bend={1.5}
+              textColor="#0f172a"
+              borderRadius={0.06}
+              scrollEase={0.03}
+              fontUrl="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap"
+              font="bold 18px Orbitron"
+            />
           </div>
 
-          {/* Carousel Controls & Indicators */}
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex items-center justify-between px-8 pointer-events-none">
-            <div className="flex gap-2 items-center pointer-events-auto">
-              {banners.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setBannerIndex(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    bannerIndex === i
-                      ? "w-8 bg-slate-900"
-                      : "w-2 bg-slate-200 hover:bg-slate-400"
-                  }`}
-                  aria-label={`Slide ${i + 1}`}
-                />
-              ))}
-            </div>
-
-            <div className="flex gap-1.5 items-center pointer-events-auto">
-              <button
-                onClick={() =>
-                  setBannerIndex(
-                    (prev) => (prev - 1 + banners.length) % banners.length
-                  )
-                }
-                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
-                aria-label="Previous Slide"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={() =>
-                  setBannerIndex((prev) => (prev + 1) % banners.length)
-                }
-                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 transition-colors"
-                aria-label="Next Slide"
-              >
-                <ChevronRight size={16} />
-              </button>
+          {/* Bottom Floating Control Bar */}
+          <div className="relative z-20 pb-5 pt-3 px-8 flex justify-center items-center max-w-5xl mx-auto text-xs font-bold text-slate-600 border-t border-slate-200/80 bg-white/80 backdrop-blur-md">
+            <div className="flex items-center gap-2 text-slate-700">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shadow-xs" />
+              <span>Drag to Spin • Scroll Wheel • Arrow Keys</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Trust & Guarantee Strip */}

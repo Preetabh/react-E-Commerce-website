@@ -273,12 +273,15 @@ userControllers.getCartItems = async (req, res) => {
       profilePictureBase64 = `data:${user.profilePicture.contentType};base64,${user.profilePicture.data.toString("base64")}`;
     }
 
+    // ✅ Filter out invalid dummy contact numbers
+    const validContact = (user.contact === "0000000000" || !user.contact) ? "" : user.contact;
+
     // ✅ Send response
     return res.status(200).json({
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      contact: user.contact,
+      contact: validContact,
       address: user.address || {},
       coins: user.coins || 250,
       profilePicture: profilePictureBase64,
@@ -467,8 +470,7 @@ const Product = require("../models/productModel"); // Import Product model
 // 📌 MyOrders User
 userControllers.MyOrders = async (req, res) => {
   try {
-
-    const token = req.headers.authorization.split(" ")[1];;
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({ message: "Unauthorized: No token provided" });
@@ -477,34 +479,79 @@ userControllers.MyOrders = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userEmail = decoded.email;
 
-
-    const user = await userModel.findOne({ email: userEmail }).populate("orders");
-
+    const user = await userModel.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Fetch product details for each order using productId
-    const ordersWithProductDetails = await Promise.all(
-      user.orders.map(async (order) => {
-        const product = await Product.findById(order.productId);
+    const OrderModel = require("../models/orderModel");
+    const centralOrders = await OrderModel.find({ userId: user._id })
+      .populate("productId")
+      .sort({ createdAt: -1 });
 
+    let combinedOrders = [];
 
+    if (centralOrders && centralOrders.length > 0) {
+      combinedOrders = centralOrders.map((order) => {
+        const prod = order.productId;
         return {
-          productId: order.productId,
           _id: order._id,
-          name: product?.name || "Unknown Product",
-          image: product?.images?.[0]?.url || "",
-          price: product?.price || order.price, // If price isn't in product, fallback to order
-          quantity: order.quantity,
-          status: order.status,
-          orderDate: order.orderDate,
+          orderId: order.transactionId || `ORD-${order._id.toString().slice(-6).toUpperCase()}`,
+          productId: prod?._id || order.productId,
+          name: prod?.name || "Luxury Shop Mart Item",
+          image: prod?.images?.[0]?.url || prod?.image?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600",
+          price: order.amount || prod?.discount || prod?.price || 0,
+          originalPrice: prod?.price || order.amount,
+          quantity: 1,
+          status: order.status || "Confirmed",
+          paymentMethod: order.paymentMethod || "Online",
+          paymentStatus: order.paymentStatus || "Success",
+          transactionId: order.transactionId || `TXN-${Date.now()}`,
+          orderDate: order.createdAt || new Date(),
+          customerName: `${user.firstname || "Valued"} ${user.lastname || "Customer"}`,
+          customerEmail: user.email,
+          contact: user.contact || "N/A",
+          shippingAddress: user.address?.street
+            ? `${user.address.street}, ${user.address.city || ""}`
+            : (user.address?.city || "Standard Home Delivery"),
         };
-      })
-    );
+      });
+    }
 
+    // Also include any user.orders not present in central orders
+    if (user.orders && user.orders.length > 0) {
+      for (const order of user.orders) {
+        const exists = combinedOrders.some(
+          (c) => c._id.toString() === order._id.toString()
+        );
+        if (!exists) {
+          const prod = await Product.findById(order.productId);
+          combinedOrders.push({
+            _id: order._id,
+            orderId: `ORD-${order._id.toString().slice(-6).toUpperCase()}`,
+            productId: order.productId,
+            name: prod?.name || "Luxury Shop Mart Item",
+            image: prod?.images?.[0]?.url || prod?.image?.url || "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600",
+            price: order.price || prod?.discount || prod?.price || 0,
+            originalPrice: prod?.price || order.price,
+            quantity: order.quantity || 1,
+            status: order.status || "Confirmed",
+            paymentMethod: "COD",
+            paymentStatus: "Success",
+            transactionId: `COD-${Date.now()}`,
+            orderDate: order.orderDate || new Date(),
+            customerName: `${user.firstname || "Valued"} ${user.lastname || "Customer"}`,
+            customerEmail: user.email,
+            contact: user.contact || "N/A",
+            shippingAddress: user.address?.street
+              ? `${user.address.street}, ${user.address.city || ""}`
+              : (user.address?.city || "Standard Home Delivery"),
+          });
+        }
+      }
+    }
 
-      return res.status(200).json({ orders: ordersWithProductDetails });
+    return res.status(200).json({ orders: combinedOrders });
   } catch (error) {
     console.error("MyOrders Error:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -707,7 +754,7 @@ userControllers.googleAuthCallback = async (req, res) => {
         email,
         googleId: sub,
         googleProfilePic: picture,
-        contact: "0000000000"
+        contact: ""
       });
       await user.save();
     } else {
@@ -764,7 +811,7 @@ userControllers.googleOneTapLogin = async (req, res) => {
         email,
         googleId: sub,
         googleProfilePic: picture,
-        contact: "0000000000"
+        contact: ""
       });
       await user.save();
     } else {
@@ -871,7 +918,7 @@ userControllers.githubAuthCallback = async (req, res) => {
         email,
         githubId: String(ghUser.id),
         googleProfilePic: ghUser.avatar_url,
-        contact: "0000000000",
+        contact: "",
       });
       await user.save();
     } else {
