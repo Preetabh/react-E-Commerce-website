@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useGesture } from '@use-gesture/react';
+import { ZoomIn, ZoomOut, Play, Pause, RotateCcw, Maximize2 } from 'lucide-react';
 import './DomeGallery.css';
 
 const DEFAULT_IMAGES = [
@@ -38,9 +39,9 @@ const DEFAULT_IMAGES = [
 ];
 
 const DEFAULTS = {
-  maxVerticalRotationDeg: 5,
-  dragSensitivity: 20,
-  enlargeTransitionMs: 300,
+  maxVerticalRotationDeg: 12,
+  dragSensitivity: 18,
+  enlargeTransitionMs: 350,
   segments: 35
 };
 
@@ -69,11 +70,6 @@ function buildItems(pool, seg) {
   const totalSlots = coords.length;
   if (pool.length === 0) {
     return coords.map(c => ({ ...c, src: '', alt: '' }));
-  }
-  if (pool.length > totalSlots) {
-    console.warn(
-      `[DomeGallery] Provided image count (${pool.length}) exceeds available tiles (${totalSlots}). Some images will not be shown.`
-    );
   }
 
   const normalizedImages = pool.map(image => {
@@ -114,22 +110,23 @@ function computeItemBaseRotation(offsetX, offsetY, sizeX, sizeY, segments) {
 
 export default function DomeGallery({
   images = DEFAULT_IMAGES,
-  fit = 0.5,
+  fit = 0.65,
   fitBasis = 'auto',
-  minRadius = 600,
-  maxRadius = Infinity,
+  minRadius = 450,
+  maxRadius = 1200,
   padFactor = 0.25,
-  overlayBlurColor = '#120F17',
+  overlayBlurColor = '#090d16',
   maxVerticalRotationDeg = DEFAULTS.maxVerticalRotationDeg,
   dragSensitivity = DEFAULTS.dragSensitivity,
   enlargeTransitionMs = DEFAULTS.enlargeTransitionMs,
   segments = DEFAULTS.segments,
   dragDampening = 2,
-  openedImageWidth = '250px',
-  openedImageHeight = '350px',
-  imageBorderRadius = '30px',
+  openedImageWidth = '360px',
+  openedImageHeight = '460px',
+  imageBorderRadius = '24px',
   openedImageBorderRadius = '30px',
-  grayscale = false
+  grayscale = false,
+  autoRotateSpeed = 0.12
 }) {
   const rootRef = useRef(null);
   const mainRef = useRef(null);
@@ -146,9 +143,14 @@ export default function DomeGallery({
   const draggingRef = useRef(false);
   const movedRef = useRef(false);
   const inertiaRAF = useRef(null);
+  const autoRotateRAF = useRef(null);
   const openingRef = useRef(false);
   const openStartedAtRef = useRef(0);
   const lastDragEndAt = useRef(0);
+
+  // States for Zoom & Auto-Rotate
+  const [isAutoRotating, setIsAutoRotating] = useState(true);
+  const [currentRadius, setCurrentRadius] = useState(600);
 
   const scrollLockedRef = useRef(false);
   const lockScroll = useCallback(() => {
@@ -172,7 +174,53 @@ export default function DomeGallery({
     }
   };
 
-  const lockedRadiusRef = useRef(null);
+  const updateRadius = useCallback((newRadius) => {
+    const clamped = clamp(newRadius, minRadius, maxRadius);
+    setCurrentRadius(clamped);
+    if (rootRef.current) {
+      rootRef.current.style.setProperty('--radius', `${clamped}px`);
+    }
+  }, [minRadius, maxRadius]);
+
+  const handleZoomIn = () => updateRadius(currentRadius + 80);
+  const handleZoomOut = () => updateRadius(currentRadius - 80);
+  const handleResetRotation = () => {
+    rotationRef.current = { x: 0, y: 0 };
+    applyTransform(0, 0);
+    updateRadius(600);
+  };
+
+  // 🔹 Continuous Auto-Rotation Loop
+  useEffect(() => {
+    const autoStep = () => {
+      if (isAutoRotating && !draggingRef.current && !focusedElRef.current && !inertiaRAF.current) {
+        const nextY = wrapAngleSigned(rotationRef.current.y + autoRotateSpeed);
+        rotationRef.current = { ...rotationRef.current, y: nextY };
+        applyTransform(rotationRef.current.x, nextY);
+      }
+      autoRotateRAF.current = requestAnimationFrame(autoStep);
+    };
+    autoRotateRAF.current = requestAnimationFrame(autoStep);
+    return () => {
+      if (autoRotateRAF.current) cancelAnimationFrame(autoRotateRAF.current);
+    };
+  }, [isAutoRotating, autoRotateSpeed]);
+
+  // 🔹 Mouse Wheel Zoom Listener
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    const handleWheel = (e) => {
+      if (focusedElRef.current) return;
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -40 : 40;
+      updateRadius(currentRadius + delta);
+    };
+
+    mainEl.addEventListener('wheel', handleWheel, { passive: false });
+    return () => mainEl.removeEventListener('wheel', handleWheel);
+  }, [currentRadius, updateRadius]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -205,42 +253,16 @@ export default function DomeGallery({
       const heightGuard = h * 1.35;
       radius = Math.min(radius, heightGuard);
       radius = clamp(radius, minRadius, maxRadius);
-      lockedRadiusRef.current = Math.round(radius);
+      setCurrentRadius(Math.round(radius));
 
       const viewerPad = Math.max(8, Math.round(minDim * padFactor));
-      root.style.setProperty('--radius', `${lockedRadiusRef.current}px`);
+      root.style.setProperty('--radius', `${Math.round(radius)}px`);
       root.style.setProperty('--viewer-pad', `${viewerPad}px`);
       root.style.setProperty('--overlay-blur-color', overlayBlurColor);
       root.style.setProperty('--tile-radius', imageBorderRadius);
       root.style.setProperty('--enlarge-radius', openedImageBorderRadius);
       root.style.setProperty('--image-filter', grayscale ? 'grayscale(1)' : 'none');
       applyTransform(rotationRef.current.x, rotationRef.current.y);
-
-      const enlargedOverlay = viewerRef.current?.querySelector('.enlarge');
-      if (enlargedOverlay && frameRef.current && mainRef.current) {
-        const frameR = frameRef.current.getBoundingClientRect();
-        const mainR = mainRef.current.getBoundingClientRect();
-
-        const hasCustomSize = openedImageWidth && openedImageHeight;
-        if (hasCustomSize) {
-          const tempDiv = document.createElement('div');
-          tempDiv.style.cssText = `position: absolute; width: ${openedImageWidth}; height: ${openedImageHeight}; visibility: hidden;`;
-          document.body.appendChild(tempDiv);
-          const tempRect = tempDiv.getBoundingClientRect();
-          document.body.removeChild(tempDiv);
-
-          const centeredLeft = frameR.left - mainR.left + (frameR.width - tempRect.width) / 2;
-          const centeredTop = frameR.top - mainR.top + (frameR.height - tempRect.height) / 2;
-
-          enlargedOverlay.style.left = `${centeredLeft}px`;
-          enlargedOverlay.style.top = `${centeredTop}px`;
-        } else {
-          enlargedOverlay.style.left = `${frameR.left - mainR.left}px`;
-          enlargedOverlay.style.top = `${frameR.top - mainR.top}px`;
-          enlargedOverlay.style.width = `${frameR.width}px`;
-          enlargedOverlay.style.height = `${frameR.height}px`;
-        }
-      }
     });
     ro.observe(root);
     return () => ro.disconnect();
@@ -257,10 +279,6 @@ export default function DomeGallery({
     openedImageWidth,
     openedImageHeight
   ]);
-
-  useEffect(() => {
-    applyTransform(rotationRef.current.x, rotationRef.current.y);
-  }, []);
 
   const stopInertia = useCallback(() => {
     if (inertiaRAF.current) {
@@ -647,6 +665,40 @@ export default function DomeGallery({
         <div className="overlay overlay--blur" />
         <div className="edge-fade edge-fade--top" />
         <div className="edge-fade edge-fade--bottom" />
+
+        {/* 🔹 Interactive 3D Zoom & Auto-Rotate Control Floating Bar */}
+        <div className="absolute top-4 right-4 z-40 flex items-center gap-2 bg-slate-900/80 backdrop-blur-md p-2 rounded-2xl border border-slate-700/80 shadow-2xl">
+          <button
+            onClick={handleZoomIn}
+            className="p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition"
+            title="Zoom In (or Scroll Up)"
+          >
+            <ZoomIn size={16} />
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition"
+            title="Zoom Out (or Scroll Down)"
+          >
+            <ZoomOut size={16} />
+          </button>
+          <button
+            onClick={() => setIsAutoRotating(!isAutoRotating)}
+            className={`p-2 rounded-xl text-white transition ${
+              isAutoRotating ? 'bg-blue-600 hover:bg-blue-500' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+            }`}
+            title={isAutoRotating ? 'Pause Auto-Rotate' : 'Play Auto-Rotate'}
+          >
+            {isAutoRotating ? <Pause size={16} /> : <Play size={16} />}
+          </button>
+          <button
+            onClick={handleResetRotation}
+            className="p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition"
+            title="Reset Position"
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
 
         <div className="viewer" ref={viewerRef}>
           <div ref={scrimRef} className="scrim" />
