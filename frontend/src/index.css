@@ -22,6 +22,28 @@ body {
   letter-spacing: -0.012em;
 }
 
+/* GPU Hardware Acceleration & Smooth Low-Spec Rendering */
+html {
+  scroll-behavior: smooth;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+/* Low Graphics Mode: Disable heavy CPU backdrop-filter blurs on low-end screens */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .apple-glass, .apple-glass-dark {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
 /* Glassmorphism Utilities */
 .apple-glass {
   background: rgba(252, 251, 249, 0.85);

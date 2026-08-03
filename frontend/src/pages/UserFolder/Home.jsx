@@ -37,7 +37,6 @@ import "toastify-js/src/toastify.css";
 import "../../App.css";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
-import CircularGallery from "../../components/CircularGallery";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -126,16 +125,6 @@ const Home = () => {
     }
     return luxuryFallbacks;
   }, [products]);
-
-  useEffect(() => {
-    const lenis = new Lenis({ smooth: true, lerp: 0.08 });
-    const raf = (time) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
-    requestAnimationFrame(raf);
-    return () => lenis.destroy();
-  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -431,24 +420,43 @@ const Home = () => {
             </p>
           </div>
 
-          {/* 3D Canvas Circular Gallery Canvas */}
-          <div style={{ height: "500px", position: "relative" }} className="w-full relative z-10 mt-2">
-            <CircularGallery
-              items={circularGalleryItems}
-              bend={1.5}
-              textColor="#0f172a"
-              borderRadius={0.06}
-              scrollEase={0.03}
-              fontUrl="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap"
-              font="bold 18px Orbitron"
-            />
+          {/* GPU Hardware-Accelerated 60 FPS Showcase Slider */}
+          <div className="w-full relative z-10 my-6 overflow-hidden gpu-accelerated">
+            <div className="flex gap-5 overflow-x-auto pb-6 pt-2 px-4 scrollbar-none snap-x snap-mandatory">
+              {circularGalleryItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="snap-center shrink-0 w-64 sm:w-72 bg-white/90 border border-slate-200/80 rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 gpu-accelerated flex flex-col justify-between group cursor-pointer"
+                >
+                  <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-slate-100 mb-3">
+                    <img
+                      src={item.image}
+                      alt={item.text}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold">
+                      Flagship
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-sm text-slate-900 truncate">
+                      {item.text}
+                    </span>
+                    <span className="text-xs text-blue-600 font-bold group-hover:translate-x-1 transition-transform">
+                      View →
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Bottom Floating Control Bar */}
-          <div className="relative z-20 pb-5 pt-3 px-8 flex justify-center items-center max-w-5xl mx-auto text-xs font-bold text-slate-600 border-t border-slate-200/80 bg-white/80 backdrop-blur-md">
-            <div className="flex items-center gap-2 text-slate-700">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shadow-xs" />
-              <span>Drag to Spin • Scroll Wheel • Arrow Keys</span>
+          {/* Bottom Control Hint */}
+          <div className="relative z-20 pb-4 pt-2 px-6 flex justify-center items-center max-w-5xl mx-auto text-xs font-bold text-slate-500 border-t border-slate-200/60 bg-white/90">
+            <div className="flex items-center gap-2 text-slate-600">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs" />
+              <span>Scroll horizontally • Tap to view product details</span>
             </div>
           </div>
         </div>
