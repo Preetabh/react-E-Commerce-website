@@ -30,6 +30,34 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Mobile App Download Quick Links */}
+        <div className="py-6 border-b border-black/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[#1d1d1f]">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm">Download Shop Mart Mobile App:</span>
+            <span className="text-xs text-[#86868b] hidden sm:inline">Get live order tracking & AI assistance</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <a
+              href="http://localhost:8081"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0f172a] text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs"
+            >
+              <span>🤖 Android (.APK)</span>
+            </a>
+
+            <a
+              href="http://localhost:8081"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0f172a] text-white text-xs font-bold hover:bg-slate-800 transition shadow-xs"
+            >
+              <span>🍎 iPhone App</span>
+            </a>
+          </div>
+        </div>
+
         {/* Legal Disclaimer */}
         <div className="py-6 border-b border-black/10 leading-relaxed text-[#86868b]">
           <p>

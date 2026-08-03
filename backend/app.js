@@ -27,7 +27,14 @@ app.use(cookieParser());
 // 🔹 CORS Configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://biggest-shop-mart.onrender.com"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl) or allowed origins
+      if (!origin || origin.includes("localhost") || origin.includes("onrender.com")) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
