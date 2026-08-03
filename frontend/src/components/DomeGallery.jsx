@@ -206,21 +206,7 @@ export default function DomeGallery({
     };
   }, [isAutoRotating, autoRotateSpeed]);
 
-  // 🔹 Mouse Wheel Zoom Listener
-  useEffect(() => {
-    const mainEl = mainRef.current;
-    if (!mainEl) return;
-
-    const handleWheel = (e) => {
-      if (focusedElRef.current) return;
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -40 : 40;
-      updateRadius(currentRadius + delta);
-    };
-
-    mainEl.addEventListener('wheel', handleWheel, { passive: false });
-    return () => mainEl.removeEventListener('wheel', handleWheel);
-  }, [currentRadius, updateRadius]);
+  // 🔹 Auto-Rotate & Scroll Restoration (Page scroll works naturally without hijacking)
 
   useEffect(() => {
     const root = rootRef.current;
