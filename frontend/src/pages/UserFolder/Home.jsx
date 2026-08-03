@@ -37,6 +37,7 @@ import "toastify-js/src/toastify.css";
 import "../../App.css";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
+import DomeGallery from "../../components/DomeGallery";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -420,43 +421,31 @@ const Home = () => {
             </p>
           </div>
 
-          {/* GPU Hardware-Accelerated 60 FPS Showcase Slider */}
-          <div className="w-full relative z-10 my-6 overflow-hidden gpu-accelerated">
-            <div className="flex gap-5 overflow-x-auto pb-6 pt-2 px-4 scrollbar-none snap-x snap-mandatory">
-              {circularGalleryItems.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="snap-center shrink-0 w-64 sm:w-72 bg-white/90 border border-slate-200/80 rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1.5 gpu-accelerated flex flex-col justify-between group cursor-pointer"
-                >
-                  <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-slate-100 mb-3">
-                    <img
-                      src={item.image}
-                      alt={item.text}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold">
-                      Flagship
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-sm text-slate-900 truncate">
-                      {item.text}
-                    </span>
-                    <span className="text-xs text-blue-600 font-bold group-hover:translate-x-1 transition-transform">
-                      View →
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+          {/* Dome Gallery Hero Component */}
+          <div className="w-full relative z-10 my-4 h-[550px] overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-950/90 shadow-2xl">
+            <DomeGallery
+              images={circularGalleryItems.map((item) => ({
+                src: item.image,
+                alt: item.text,
+              }))}
+              fit={0.65}
+              fitBasis="auto"
+              minRadius={500}
+              maxRadius={900}
+              overlayBlurColor="#090d16"
+              grayscale={false}
+              openedImageWidth="360px"
+              openedImageHeight="440px"
+              imageBorderRadius="24px"
+              openedImageBorderRadius="28px"
+            />
           </div>
 
           {/* Bottom Control Hint */}
           <div className="relative z-20 pb-4 pt-2 px-6 flex justify-center items-center max-w-5xl mx-auto text-xs font-bold text-slate-500 border-t border-slate-200/60 bg-white/90">
             <div className="flex items-center gap-2 text-slate-600">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs" />
-              <span>Scroll horizontally • Tap to view product details</span>
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-xs" />
+              <span>Drag or swipe to rotate 3D Dome • Tap any image to enlarge</span>
             </div>
           </div>
         </div>
