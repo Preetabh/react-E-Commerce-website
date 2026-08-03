@@ -38,7 +38,6 @@ import "../../App.css";
 import Footer from "../../components/Footer";
 import Navbar from "../../components/Navbar";
 import CircularGallery from "../../components/CircularGallery";
-import MobileAppBanner from "../../components/MobileAppBanner";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -678,7 +677,6 @@ const Home = () => {
         )}
       </AnimatePresence>
 
-      <MobileAppBanner />
       <Footer />
     </div>
   );
