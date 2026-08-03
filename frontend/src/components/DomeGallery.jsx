@@ -1,38 +1,46 @@
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useGesture } from '@use-gesture/react';
-import { ZoomIn, ZoomOut, Play, Pause, RotateCcw, Maximize2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, Play, Pause, RotateCcw } from 'lucide-react';
 import './DomeGallery.css';
 
 const DEFAULT_IMAGES = [
   {
+    id: '1',
     src: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop',
     alt: 'Studio Headphones'
   },
   {
+    id: '2',
     src: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop',
     alt: 'Smart Watch'
   },
   {
+    id: '3',
     src: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop',
     alt: 'Ultra Watch'
   },
   {
+    id: '4',
     src: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop',
     alt: 'MacBook Pro'
   },
   {
+    id: '5',
     src: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=800&auto=format&fit=crop',
     alt: 'Hi-Fi Audio'
   },
   {
+    id: '6',
     src: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop',
     alt: 'Pro Lens'
   },
   {
+    id: '7',
     src: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=800&auto=format&fit=crop',
     alt: 'Gaming Station'
   },
   {
+    id: '8',
     src: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?q=80&w=800&auto=format&fit=crop',
     alt: 'Wireless Pods'
   }
@@ -69,14 +77,20 @@ function buildItems(pool, seg) {
 
   const totalSlots = coords.length;
   if (pool.length === 0) {
-    return coords.map(c => ({ ...c, src: '', alt: '' }));
+    return coords.map(c => ({ ...c, src: '', alt: '', id: '', price: '', rawProduct: null }));
   }
 
   const normalizedImages = pool.map(image => {
     if (typeof image === 'string') {
-      return { src: image, alt: '' };
+      return { src: image, alt: '', id: '', price: '', rawProduct: null };
     }
-    return { src: image.src || '', alt: image.alt || '' };
+    return {
+      src: image.src || '',
+      alt: image.alt || '',
+      id: image.id || image._id || '',
+      price: image.price || '',
+      rawProduct: image.rawProduct || image
+    };
   });
 
   const usedImages = Array.from({ length: totalSlots }, (_, i) => normalizedImages[i % normalizedImages.length]);
@@ -97,7 +111,10 @@ function buildItems(pool, seg) {
   return coords.map((c, i) => ({
     ...c,
     src: usedImages[i].src,
-    alt: usedImages[i].alt
+    alt: usedImages[i].alt,
+    id: usedImages[i].id,
+    price: usedImages[i].price,
+    rawProduct: usedImages[i].rawProduct
   }));
 }
 
@@ -126,7 +143,8 @@ export default function DomeGallery({
   imageBorderRadius = '24px',
   openedImageBorderRadius = '30px',
   grayscale = false,
-  autoRotateSpeed = 0.12
+  autoRotateSpeed = 0.12,
+  onItemClick
 }) {
   const rootRef = useRef(null);
   const mainRef = useRef(null);
@@ -205,8 +223,6 @@ export default function DomeGallery({
       if (autoRotateRAF.current) cancelAnimationFrame(autoRotateRAF.current);
     };
   }, [isAutoRotating, autoRotateSpeed]);
-
-  // 🔹 Auto-Rotate & Scroll Restoration (Page scroll works naturally without hijacking)
 
   useEffect(() => {
     const root = rootRef.current;
@@ -513,11 +529,39 @@ export default function DomeGallery({
       overlay.style.willChange = 'transform, opacity';
       overlay.style.transformOrigin = 'top left';
       overlay.style.transition = `transform ${enlargeTransitionMs}ms ease, opacity ${enlargeTransitionMs}ms ease`;
+      
       const rawSrc = parent.dataset.src || el.querySelector('img')?.src || '';
+      const itemAlt = parent.dataset.alt || el.querySelector('img')?.alt || 'Product';
+      const itemId = parent.dataset.id || '';
+      const itemPrice = parent.dataset.price || '';
+
       const img = document.createElement('img');
       img.src = rawSrc;
       overlay.appendChild(img);
+
+      // 🔹 Add Product Detail Action Overlay Badge inside Enlarged Frame
+      const infoBox = document.createElement('div');
+      infoBox.style.cssText = 'position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(to top, rgba(15,23,42,0.95), transparent);display:flex;align-items:center;justify-content:between;gap:12px;z-index:40;';
+      
+      const titleSpan = document.createElement('div');
+      titleSpan.style.cssText = 'color:#fff;font-weight:800;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;';
+      titleSpan.innerText = itemAlt + (itemPrice ? ` - ₹${Number(itemPrice).toLocaleString('en-IN')}` : '');
+      infoBox.appendChild(titleSpan);
+
+      if (onItemClick) {
+        const viewBtn = document.createElement('button');
+        viewBtn.style.cssText = 'background:#2563eb;color:#fff;font-weight:800;font-size:12px;padding:8px 14px;border-radius:12px;border:none;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.4);';
+        viewBtn.innerText = 'View Details →';
+        viewBtn.onclick = (e) => {
+          e.stopPropagation();
+          onItemClick({ id: itemId, src: rawSrc, alt: itemAlt, price: itemPrice });
+        };
+        infoBox.appendChild(viewBtn);
+      }
+
+      overlay.appendChild(infoBox);
       viewerRef.current.appendChild(overlay);
+
       const tx0 = tileR.left - frameR.left;
       const ty0 = tileR.top - frameR.top;
       const sx0 = tileR.width / frameR.width;
@@ -568,7 +612,7 @@ export default function DomeGallery({
         overlay.addEventListener('transitionend', onFirstEnd);
       }
     },
-    [enlargeTransitionMs, lockScroll, openedImageHeight, openedImageWidth, segments, unlockScroll]
+    [enlargeTransitionMs, lockScroll, openedImageHeight, openedImageWidth, segments, unlockScroll, onItemClick]
   );
 
   const onTileClick = useCallback(
@@ -621,6 +665,9 @@ export default function DomeGallery({
                 key={`${it.x},${it.y},${i}`}
                 className="item"
                 data-src={it.src}
+                data-alt={it.alt}
+                data-id={it.id}
+                data-price={it.price}
                 data-offset-x={it.x}
                 data-offset-y={it.y}
                 data-size-x={it.sizeX}
@@ -657,14 +704,14 @@ export default function DomeGallery({
           <button
             onClick={handleZoomIn}
             className="p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition"
-            title="Zoom In (or Scroll Up)"
+            title="Zoom In"
           >
             <ZoomIn size={16} />
           </button>
           <button
             onClick={handleZoomOut}
             className="p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700 transition"
-            title="Zoom Out (or Scroll Down)"
+            title="Zoom Out"
           >
             <ZoomOut size={16} />
           </button>

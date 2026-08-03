@@ -97,30 +97,28 @@ const Home = () => {
 
   const circularGalleryItems = useMemo(() => {
     const luxuryFallbacks = [
-      { image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop", text: "Studio Headphones" },
-      { image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop", text: "Smart Watch" },
-      { image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop", text: "Ultra Watch" },
-      { image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop", text: "MacBook Pro" },
-      { image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=800&auto=format&fit=crop", text: "Hi-Fi Audio" },
-      { image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop", text: "Pro Lens" },
-      { image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=800&auto=format&fit=crop", text: "Gaming Station" },
-      { image: "https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?q=80&w=800&auto=format&fit=crop", text: "Wireless Pods" },
+      { id: "1", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop", text: "Studio Headphones", price: 4999 },
+      { id: "2", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop", text: "Smart Watch", price: 2999 },
+      { id: "3", image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=800&auto=format&fit=crop", text: "Ultra Watch", price: 8999 },
+      { id: "4", image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop", text: "MacBook Pro", price: 99999 },
+      { id: "5", image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=800&auto=format&fit=crop", text: "Hi-Fi Audio", price: 14999 },
+      { id: "6", image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop", text: "Pro Lens", price: 34999 },
+      { id: "7", image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?q=80&w=800&auto=format&fit=crop", text: "Gaming Station", price: 54999 },
+      { id: "8", image: "https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?q=80&w=800&auto=format&fit=crop", text: "Wireless Pods", price: 1999 },
     ];
 
     if (products && products.length > 0) {
-      return products.slice(0, 8).map((p, idx) => {
-        // Shorten long product titles to 1-2 words (max 15 chars) so text never overlaps in WebGL
-        const shortName = p.name
-          ? p.name.split(/[\s,(-]+/)[0].substring(0, 14) + (p.name.split(/[\s,(-]+/)[1] ? " " + p.name.split(/[\s,(-]+/)[1].substring(0, 10) : "")
-          : `Luxury Item ${idx + 1}`;
-
+      return products.map((p, idx) => {
         const validImg = (p.image && p.image.startsWith("http"))
           ? p.image
           : luxuryFallbacks[idx % luxuryFallbacks.length].image;
 
         return {
+          id: p._id,
           image: validImg,
-          text: shortName,
+          text: p.name || `Product ${idx + 1}`,
+          price: p.discount || p.price || 0,
+          rawProduct: p
         };
       });
     }
@@ -425,8 +423,11 @@ const Home = () => {
           <div className="w-full relative z-10 my-4 h-[550px] overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-950/90 shadow-2xl">
             <DomeGallery
               images={circularGalleryItems.map((item) => ({
+                id: item.id,
                 src: item.image,
                 alt: item.text,
+                price: item.price,
+                rawProduct: item.rawProduct,
               }))}
               fit={0.65}
               fitBasis="auto"
@@ -438,6 +439,11 @@ const Home = () => {
               openedImageHeight="440px"
               imageBorderRadius="24px"
               openedImageBorderRadius="28px"
+              onItemClick={(item) => {
+                if (item.id) {
+                  navigate(`/productsDetails/${item.id}`);
+                }
+              }}
             />
           </div>
 
