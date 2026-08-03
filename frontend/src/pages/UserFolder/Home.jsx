@@ -441,7 +441,10 @@ const Home = () => {
               openedImageBorderRadius="28px"
               onItemClick={(item) => {
                 if (item.id) {
-                  navigate(`/productsDetails/${item.id}`);
+                  navigate(`/products/${item.id}`);
+                } else {
+                  const el = document.getElementById("products-grid");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
                 }
               }}
             />

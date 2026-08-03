@@ -621,9 +621,20 @@ export default function DomeGallery({
       if (movedRef.current) return;
       if (performance.now() - lastDragEndAt.current < 80) return;
       if (openingRef.current) return;
-      openItemFromElement(e.currentTarget);
+
+      const parent = e.currentTarget.parentElement;
+      const itemId = parent?.dataset?.id || '';
+      const itemAlt = parent?.dataset?.alt || '';
+      const itemSrc = parent?.dataset?.src || '';
+      const itemPrice = parent?.dataset?.price || '';
+
+      if (onItemClick) {
+        onItemClick({ id: itemId, src: itemSrc, alt: itemAlt, price: itemPrice });
+      } else {
+        openItemFromElement(e.currentTarget);
+      }
     },
-    [openItemFromElement]
+    [openItemFromElement, onItemClick]
   );
 
   const onTilePointerUp = useCallback(
@@ -633,9 +644,20 @@ export default function DomeGallery({
       if (movedRef.current) return;
       if (performance.now() - lastDragEndAt.current < 80) return;
       if (openingRef.current) return;
-      openItemFromElement(e.currentTarget);
+
+      const parent = e.currentTarget.parentElement;
+      const itemId = parent?.dataset?.id || '';
+      const itemAlt = parent?.dataset?.alt || '';
+      const itemSrc = parent?.dataset?.src || '';
+      const itemPrice = parent?.dataset?.price || '';
+
+      if (onItemClick) {
+        onItemClick({ id: itemId, src: itemSrc, alt: itemAlt, price: itemPrice });
+      } else {
+        openItemFromElement(e.currentTarget);
+      }
     },
-    [openItemFromElement]
+    [openItemFromElement, onItemClick]
   );
 
   useEffect(() => {
